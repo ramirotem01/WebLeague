@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebLeague | Submit & Rank</title>
+    <title>WebLeague | הליגה השבועית</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .gradient-bg { background: linear-gradient(135deg, #1e3a8a 0%, #4338ca 100%); }
@@ -11,27 +11,25 @@
         .medal-1 { background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; }
         .medal-2 { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
         .medal-3 { background: #ffedd5; color: #9a3412; border: 1px solid #f97316; }
-        .animate-pop { animation: pop 0.3s ease-out; }
-        @keyframes pop { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen font-sans">
+<body class="bg-slate-50 min-h-screen font-sans text-right">
 
     <header class="gradient-bg text-white py-12 px-4 shadow-lg">
         <div class="max-w-4xl mx-auto text-center">
             <h1 class="text-4xl font-black italic uppercase mb-2 tracking-tighter">PCS365 WebLeague</h1>
-            <p class="text-indigo-100 opacity-80 mb-8 font-medium">Analyze your webapp and join the weekly ranking battle</p>
+            <p class="text-indigo-100 opacity-80 mb-8 font-medium italic">הוסף את האתר שלך והתחרה על המקום הראשון השבוע</p>
             
             <div class="glass-card p-6 rounded-2xl shadow-2xl max-w-2xl mx-auto border border-white/20">
                 <div class="flex flex-col md:flex-row gap-3">
                     <input type="url" id="urlInput" placeholder="https://pcs365.co.il" 
-                        class="flex-1 p-4 bg-white border border-slate-200 text-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                        class="flex-1 p-4 bg-white border border-slate-200 text-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-left">
                     <button onclick="analyzeWebsite()" id="analyzeBtn"
                         class="bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 px-8 rounded-xl transition-all shadow-lg active:scale-95">
-                        ANALYZE
+                        נתח אתר
                     </button>
                 </div>
-                <p id="statusMsg" class="text-[10px] mt-3 font-bold text-slate-500 uppercase tracking-widest"></p>
+                <p id="statusMsg" class="text-xs mt-3 font-bold text-slate-500 uppercase tracking-widest"></p>
             </div>
         </div>
     </header>
@@ -40,7 +38,7 @@
         
         <div id="resultCard" class="hidden animate-pop mb-12 bg-white rounded-3xl shadow-xl overflow-hidden border-2 border-emerald-400 max-w-2xl mx-auto">
             <div class="p-6 flex items-center justify-between bg-emerald-50/50">
-                <div class="flex items-center gap-4 text-left">
+                <div class="flex items-center gap-4 text-right">
                     <img id="siteIcon" src="" class="w-12 h-12 rounded-lg bg-white shadow-sm border border-slate-100">
                     <div>
                         <h2 id="siteTitle" class="text-xl font-black text-slate-800 leading-tight"></h2>
@@ -48,40 +46,39 @@
                     </div>
                 </div>
                 <button onclick="confirmSubmission()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl font-black text-sm transition-all shadow-md active:scale-95">
-                    ADD TO LEAGUE 🚀
+                    הוסף לליגה 🚀
                 </button>
             </div>
         </div>
 
         <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-200">
             <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                <h3 class="text-xl font-black text-slate-800 italic uppercase tracking-tight">Weekly Rankings</h3>
+                <h3 class="text-xl font-black text-slate-800 italic uppercase">דירוג שבועי</h3>
                 <div class="flex items-center gap-2">
+                    <span id="voteStatus" class="text-[10px] font-bold text-indigo-600 uppercase tracking-widest italic">עדכון חי מהשרת</span>
                     <span class="relative flex h-3 w-3">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
                     </span>
-                    <span class="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">Live Updates</span>
                 </div>
             </div>
             
-            <div class="overflow-x-auto text-left">
-                <table class="w-full">
+            <div class="overflow-x-auto">
+                <table class="w-full text-right">
                     <thead class="bg-slate-50">
                         <tr>
-                            <th class="p-5 text-[10px] font-black uppercase text-slate-400">Rank</th>
-                            <th class="p-5 text-[10px] font-black uppercase text-slate-400">Project</th>
-                            <th class="p-5 text-[10px] font-black uppercase text-slate-400">Score</th>
-                            <th class="p-5 text-[10px] font-black uppercase text-slate-400 text-center">Vote</th>
+                            <th class="p-5 text-xs font-black uppercase text-slate-400">דירוג</th>
+                            <th class="p-5 text-xs font-black uppercase text-slate-400">פרויקט</th>
+                            <th class="p-5 text-xs font-black uppercase text-slate-400">ניקוד</th>
+                            <th class="p-5 text-xs font-black uppercase text-slate-400 text-center">הצבע</th>
                         </tr>
                     </thead>
                     <tbody id="leaderboardBody">
                         </tbody>
                 </table>
             </div>
-            
             <div id="tableLoader" class="p-16 text-center text-slate-400 font-bold uppercase text-[10px] tracking-[0.2em]">
-                Fetching current league data...
+                טוען נתונים...
             </div>
         </div>
     </main>
@@ -90,7 +87,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, limit, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Your Web App's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBs8x4SVn65rzWrQJxbwxpOj2XvoNFMhBI",
             authDomain: "webleague-7b833.firebaseapp.com",
@@ -101,30 +97,42 @@
             measurementId: "G-WK9D6R74GH"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- 1. ANALYZE WEBSITE (Client-side scraping via Proxy) ---
+        // Helper: Get Current Week Number
+        function getCurrentWeek() {
+            const now = new Date();
+            const onejan = new Date(now.getFullYear(), 0, 1);
+            return Math.ceil((((now.getTime() - onejan.getTime()) / 86400000) + onejan.getDay() + 1) / 7);
+        }
+
+        // 1. Analyze Website
         window.analyzeWebsite = async function() {
             const urlInput = document.getElementById('urlInput').value.trim();
             const statusMsg = document.getElementById('statusMsg');
-            const resultCard = document.getElementById('resultCard');
-
-            if (!urlInput.startsWith('http')) {
-                statusMsg.innerText = "❌ Please enter a full URL starting with https://";
-                statusMsg.className = "text-[10px] mt-3 font-bold text-red-500 uppercase tracking-widest";
+            
+            // Check submission limit (Max 3)
+            const submissionCount = parseInt(localStorage.getItem('subCount') || '0');
+            if (submissionCount >= 3) {
+                statusMsg.innerText = "❌ הגעת למגבלה של 3 אתרים!";
+                statusMsg.className = "text-xs mt-3 font-bold text-red-500 uppercase";
                 return;
             }
 
-            statusMsg.innerText = "⏳ Reading source code...";
-            statusMsg.className = "text-[10px] mt-3 font-bold text-indigo-600 uppercase tracking-widest animate-pulse";
+            if (!urlInput.startsWith('http')) {
+                statusMsg.innerText = "❌ נא להזין כתובת מלאה כולל https://";
+                statusMsg.className = "text-xs mt-3 font-bold text-red-500 uppercase";
+                return;
+            }
+
+            statusMsg.innerText = "⏳ מנתח נתונים...";
+            statusMsg.className = "text-xs mt-3 font-bold text-indigo-600 uppercase animate-pulse";
 
             try {
                 const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(urlInput)}`;
                 const response = await fetch(proxyUrl);
                 const data = await response.json();
-                
                 const parser = new DOMParser();
                 const docParsed = parser.parseFromString(data.contents, 'text/html');
 
@@ -135,54 +143,48 @@
                 document.getElementById('siteIcon').src = icon;
                 document.getElementById('siteUrlDisplay').innerText = urlInput;
 
-                // Temporary object to save if confirmed
                 window.lastResult = {
                     url: urlInput,
                     title: title,
                     icon: icon,
-                    votes: 1, // Automatic point for joining
+                    votes: 1,
                     createdAt: new Date().getTime()
                 };
 
-                statusMsg.innerText = "✅ Analysis Complete";
-                statusMsg.className = "text-[10px] mt-3 font-bold text-emerald-500 uppercase tracking-widest";
-                resultCard.classList.remove('hidden');
+                statusMsg.innerText = "✅ הניתוח הושלם";
+                document.getElementById('resultCard').classList.remove('hidden');
             } catch (err) {
-                statusMsg.innerText = "❌ Could not reach site. Check URL.";
-                statusMsg.className = "text-[10px] mt-3 font-bold text-red-500 uppercase tracking-widest";
+                statusMsg.innerText = "❌ שגיאה בניתוח האתר";
             }
         };
 
-        // --- 2. SUBMIT TO FIREBASE ---
+        // 2. Confirm & Save
         window.confirmSubmission = async function() {
-            if(!window.lastResult) return;
-            const btn = event.target;
-            btn.disabled = true;
-            btn.innerText = "SAVING...";
-
             try {
                 const sitesRef = collection(db, "league_sites");
                 const q = query(sitesRef, where("url", "==", window.lastResult.url));
                 const snap = await getDocs(q);
                 
                 if (!snap.empty) {
-                    alert("This site is already in the rankings!");
-                } else {
-                    await addDoc(sitesRef, window.lastResult);
-                    document.getElementById('urlInput').value = '';
-                    document.getElementById('resultCard').classList.add('hidden');
-                    loadLeaderboard(); // Refresh the list
+                    alert("האתר כבר קיים בליגה!");
+                    return;
                 }
+
+                await addDoc(sitesRef, window.lastResult);
+                
+                // Update Local Submission Count
+                let count = parseInt(localStorage.getItem('subCount') || '0');
+                localStorage.setItem('subCount', count + 1);
+
+                document.getElementById('resultCard').classList.add('hidden');
+                document.getElementById('urlInput').value = '';
+                loadLeaderboard();
             } catch (e) {
-                console.error(e);
-                alert("Error: Check your Firebase Database Rules (Set to allow read/write).");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "ADD TO LEAGUE 🚀";
+                alert("שגיאת מסד נתונים. וודא שהגדרת Rules כ-True.");
             }
         };
 
-        // --- 3. LOAD LEADERBOARD FROM FIREBASE ---
+        // 3. Load Leaderboard
         window.loadLeaderboard = async function() {
             const tableBody = document.getElementById('leaderboardBody');
             const loader = document.getElementById('tableLoader');
@@ -210,35 +212,45 @@
                             <td class="p-5">
                                 <div class="flex items-center gap-3">
                                     <img src="${data.icon}" class="w-8 h-8 rounded-md bg-white shadow-sm">
-                                    <div class="font-bold text-slate-800 text-sm truncate max-w-[120px] md:max-w-none">${data.title}</div>
+                                    <div class="font-bold text-slate-800 text-sm truncate max-w-[150px]">${data.title}</div>
                                 </div>
                             </td>
                             <td class="p-5 font-black text-indigo-600 text-lg">${data.votes}</td>
                             <td class="p-5 text-center">
-                                <button onclick="vote('${siteDoc.id}')" class="bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-600 px-5 py-2 rounded-full text-[10px] font-black transition-all border border-indigo-100 uppercase active:scale-90">Vote</button>
+                                <button onclick="vote('${siteDoc.id}')" class="bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-600 px-5 py-2 rounded-full text-[10px] font-black transition-all border border-indigo-100 uppercase">הצבע</button>
                             </td>
                         </tr>
                     `;
                     tableBody.innerHTML += row;
                     rank++;
                 });
-            } catch (err) {
-                console.error("Leaderboard Error:", err);
-            }
+            } catch (err) { console.error(err); }
         };
 
-        // --- 4. VOTE ACTION ---
+        // 4. Vote Action with Weekly Limit
         window.vote = async function(id) {
+            const currentWeek = getCurrentWeek();
+            const lastVoteWeek = localStorage.getItem('lastVoteWeek');
+
+            if (lastVoteWeek == currentWeek) {
+                alert("כבר הצבעת השבוע! ניתן להצביע פעם אחת בלבד בכל שבוע. חזור בשבוע הבא! ⏳");
+                return;
+            }
+
             try {
                 const siteRef = doc(db, "league_sites", id);
                 await updateDoc(siteRef, { votes: increment(1) });
-                loadLeaderboard(); // Live refresh
+                
+                // Save week to local storage
+                localStorage.setItem('lastVoteWeek', currentWeek);
+                
+                alert("הצבעתך התקבלה! בהצלחה לפרויקט 🚀");
+                loadLeaderboard();
             } catch (err) {
-                console.error("Vote Error:", err);
+                alert("שגיאה בהצבעה.");
             }
         };
 
-        // Initial fetch on page load
         loadLeaderboard();
     </script>
 </body>
