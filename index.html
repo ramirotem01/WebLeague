@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>pcs365 |TTEEESSSSTTTT/title>
+    <title>pcs365 | AI Global Index</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     
@@ -12,7 +12,7 @@
         .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
         .hero-glow { background: radial-gradient(circle at 50% -20%, #312e81, #05070a); }
         .accent-text { background: linear-gradient(90deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .loader { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.1); border-top: 2px solid #6366f1; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        .loader { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.1); border-top: 2px solid #6366f1; border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; }
         .modal.active { display: flex; }
@@ -22,10 +22,10 @@
 
     <div id="badgeModal" class="modal" onclick="this.classList.remove('active')">
         <div class="glass p-10 rounded-[2rem] max-w-md w-full text-center" onclick="event.stopPropagation()">
-            <h3 class="text-xl font-bold mb-4">Embed Your Badge</h3>
+            <h3 class="text-xl font-bold mb-4">Get Your Badge</h3>
             <div id="badgePreview" class="mb-6 flex justify-center"></div>
             <code id="badgeCode" class="block p-4 bg-black/50 text-[10px] break-all rounded-xl mb-4 text-indigo-300 border border-white/10"></code>
-            <button onclick="copyBadgeCode()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold uppercase text-xs">Copy Code</button>
+            <button onclick="copyBadgeCode()" class="w-full bg-white text-black py-3 rounded-xl font-bold uppercase text-xs">Copy Code</button>
         </div>
     </div>
 
@@ -35,14 +35,13 @@
                 <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-white">AI</div>
                 <span class="text-lg font-black italic uppercase">pcs365</span>
             </div>
-            <div id="voteStatus" class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Votes Left: <span id="votesCount" class="text-white">3</span></div>
         </div>
     </nav>
 
     <header class="pt-20 pb-12 text-center px-4">
         <h1 class="text-5xl md:text-7xl font-extrabold tracking-tighter mb-6 italic uppercase">Global <span class="accent-text">AI Index</span></h1>
         <div class="max-w-2xl mx-auto glass p-2 rounded-2xl flex flex-col md:flex-row gap-2 shadow-2xl">
-            <input type="url" id="urlInput" placeholder="Enter AI Tool URL (e.g. cursor.com)" class="flex-1 bg-transparent p-4 outline-none text-white font-medium">
+            <input type="url" id="urlInput" placeholder="Enter AI Tool URL..." class="flex-1 bg-transparent p-4 outline-none text-white">
             <button onclick="analyzeWebsite()" id="mainBtn" class="bg-indigo-600 hover:bg-indigo-500 px-10 py-4 rounded-xl font-black flex items-center justify-center gap-2 transition-all text-xs uppercase tracking-widest">
                 <span>Scan Tool</span>
                 <div id="btnSpinner" class="loader hidden"></div>
@@ -51,19 +50,16 @@
     </header>
 
     <main class="max-w-7xl mx-auto px-6 pb-20">
-        <div id="previewCard" class="hidden mb-12 animate-pulse-once">
+        <div id="previewCard" class="hidden mb-12">
             <div class="glass rounded-[2.5rem] p-8 border-indigo-500/30">
                 <div class="flex flex-col md:flex-row items-center gap-10">
-                    <img id="siteIcon" src="" class="w-24 h-24 rounded-2xl bg-black border border-white/10 p-2 shadow-2xl">
+                    <img id="siteIcon" src="" class="w-24 h-24 rounded-2xl bg-black border border-white/10 p-2">
                     <div class="flex-1 text-center md:text-left">
-                        <h2 id="siteTitle" class="text-3xl font-black text-white italic mb-1 tracking-tighter"></h2>
-                        <p id="siteDesc" class="text-slate-400 text-sm italic mb-4 line-clamp-2"></p>
+                        <h2 id="siteTitle" class="text-3xl font-black text-white italic mb-2 tracking-tighter"></h2>
+                        <p id="siteDesc" class="text-slate-400 text-sm italic mb-4"></p>
                         <div class="text-5xl font-black text-indigo-400 italic">PR <span id="sitePR">0.0</span></div>
                     </div>
-                    <div class="flex flex-col items-center gap-3">
-                        <button id="confirmBtn" onclick="confirmSubmission()" class="bg-white text-black px-12 py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:scale-105 transition-transform">Add To Index</button>
-                        <div id="statusMsg" class="text-[10px] font-black uppercase tracking-widest text-emerald-400 italic"></div>
-                    </div>
+                    <button id="confirmBtn" onclick="confirmSubmission()" class="bg-white text-black px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:scale-105 transition-transform">Add To Index</button>
                 </div>
             </div>
         </div>
@@ -100,7 +96,6 @@
         const db = getFirestore(app);
         window.tempAI = null;
 
-        // הפונקציות מוצמדות ל-window כדי שיהיו זמינות לכפתורי ה-HTML
         window.analyzeWebsite = async function() {
             let urlInput = document.getElementById('urlInput').value.trim();
             if(!urlInput) return;
@@ -108,8 +103,6 @@
             
             document.getElementById('btnSpinner').classList.remove('hidden');
             const domain = new URL(urlInput).hostname.replace('www.', '');
-            const confirmBtn = document.getElementById('confirmBtn');
-            const statusMsg = document.getElementById('statusMsg');
             
             try {
                 const res = await fetch(`https://api.microlink.io?url=${encodeURIComponent(urlInput)}`);
@@ -119,11 +112,11 @@
                 window.tempAI = {
                     url: `https://${domain}`,
                     title: d.title || domain.split('.')[0],
-                    description: d.description || `AI automated analysis for ${domain}.`,
-                    icon: d.logo?.url || d.image?.url || `https://logo.clearbit.com/${domain}`,
+                    description: d.description || "Artificial Intelligence Analysis",
+                    icon: d.logo?.url || `https://logo.clearbit.com/${domain}`,
                     votes: 1,
-                    pr: (Math.random() * 6 + 3).toFixed(1),
-                    metrics: { scanned: true }
+                    pr: (Math.random() * 5 + 3).toFixed(1),
+                    metrics: { score: Math.floor(Math.random() * 100) }
                 };
 
                 document.getElementById('siteTitle').innerText = window.tempAI.title;
@@ -131,98 +124,58 @@
                 document.getElementById('siteIcon').src = window.tempAI.icon;
                 document.getElementById('sitePR').innerText = window.tempAI.pr;
                 document.getElementById('previewCard').classList.remove('hidden');
-
+                
                 const q = query(collection(db, "league_sites"), where("url", "==", window.tempAI.url));
                 const snap = await getDocs(q);
-                
-                if(!snap.empty) {
-                    confirmBtn.innerText = "Sync & Update Index";
-                    statusMsg.innerText = "System Synced: Tool exists. Updating";
-                    statusMsg.className = "text-[10px] font-black uppercase tracking-widest text-indigo-400 italic";
-                } else {
-                    confirmBtn.innerText = "Add To Index";
-                    statusMsg.innerText = "Logic OK: New AI detected";
-                    statusMsg.className = "text-[10px] font-black uppercase tracking-widest text-emerald-400 italic";
-                }
-            } catch (e) {
-                alert("Scan failed. Check URL.");
-            } finally {
-                document.getElementById('btnSpinner').classList.add('hidden');
-            }
+                document.getElementById('confirmBtn').innerText = snap.empty ? "Add To Index" : "Sync & Update";
+            } catch (e) { alert("Error scanning site"); }
+            finally { document.getElementById('btnSpinner').classList.add('hidden'); }
         };
 
         window.confirmSubmission = async function() {
             if(!window.tempAI) return;
-            const confirmBtn = document.getElementById('confirmBtn');
-            confirmBtn.innerText = "Syncing...";
-            confirmBtn.disabled = true;
-
-            try {
-                const q = query(collection(db, "league_sites"), where("url", "==", window.tempAI.url));
-                const snap = await getDocs(q);
-                
-                if(!snap.empty) {
-                    // עדכון אתר קיים
-                    const docRef = doc(db, "league_sites", snap.docs[0].id);
-                    await updateDoc(docRef, {
-                        title: window.tempAI.title,
-                        description: window.tempAI.description,
-                        icon: window.tempAI.icon,
-                        pr: window.tempAI.pr
-                    });
-                } else {
-                    // הוספת אתר חדש
-                    await addDoc(collection(db, "league_sites"), window.tempAI);
-                }
-                
-                document.getElementById('previewCard').classList.add('hidden');
-                document.getElementById('urlInput').value = "";
-                await loadIndex();
-            } catch (e) {
-                console.error(e);
-                alert("Error saving to database.");
-            } finally {
-                confirmBtn.disabled = false;
+            const q = query(collection(db, "league_sites"), where("url", "==", window.tempAI.url));
+            const snap = await getDocs(q);
+            if(!snap.empty) {
+                await updateDoc(doc(db, "league_sites", snap.docs[0].id), window.tempAI);
+            } else {
+                await addDoc(collection(db, "league_sites"), window.tempAI);
             }
+            document.getElementById('previewCard').classList.add('hidden');
+            loadIndex();
         };
 
         window.vote = async function(id) {
-            try {
-                const docRef = doc(db, "league_sites", id);
-                await updateDoc(docRef, { votes: increment(1) });
-                loadIndex();
-            } catch(e) { console.error(e); }
+            await updateDoc(doc(db, "league_sites", id), { votes: increment(1) });
+            loadIndex();
         };
 
         window.loadIndex = async function() {
-            const q = query(collection(db, "league_sites"), orderBy("votes", "desc"), limit(100));
+            const q = query(collection(db, "league_sites"), orderBy("votes", "desc"), limit(50));
             const snap = await getDocs(q);
             const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             
-            const tbody = document.getElementById('leaderboardBody');
-            tbody.innerHTML = data.map((item, i) => `
+            document.getElementById('leaderboardBody').innerHTML = data.map((item, i) => `
                 <tr class="hover:bg-white/[0.02] transition-all">
                     <td class="p-6 font-black text-3xl opacity-10 italic">${i + 1}</td>
                     <td class="p-6">
                         <div class="flex items-center gap-4">
-                            <img src="${item.icon}" class="w-12 h-12 rounded-xl bg-black border border-white/5 p-1 shadow-lg">
+                            <img src="${item.icon}" class="w-12 h-12 rounded-xl bg-black border border-white/5 p-1">
                             <div>
-                                <div class="font-bold text-white text-lg leading-tight tracking-tighter">${item.title}</div>
+                                <div class="font-bold text-white text-lg leading-tight">${item.title}</div>
                                 <div class="text-[9px] text-indigo-400 font-black uppercase italic tracking-widest">Neural PR ${item.pr}</div>
                             </div>
                         </div>
                     </td>
-                    <td class="p-6 text-center font-black text-3xl italic text-white tracking-tighter">${item.votes}</td>
+                    <td class="p-6 text-center font-black text-3xl italic text-white">${item.votes}</td>
                     <td class="p-6">
                         <div class="flex items-center justify-end gap-3">
                             <button onclick="openShare('${item.id}', '${item.title.replace(/'/g, "\\'")}', '${item.pr}')" 
-                                style="background:transparent; border:2px solid #f97316; color:#f97316; padding:10px 18px; border-radius:12px; font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:1px; cursor:pointer; transition:0.2s;"
-                                onmouseover="this.style.background='rgba(249,115,22,0.1)'" onmouseout="this.style.background='transparent'">
+                                style="background:transparent; border:2px solid #f97316; color:#f97316; padding:10px 18px; border-radius:12px; font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:1px; cursor:pointer;">
                                 Embed
                             </button>
                             <button onclick="vote('${item.id}')" 
-                                style="background:transparent; border:2px solid #ffffff; color:#ffffff; padding:10px 24px; border-radius:12px; font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:1px; cursor:pointer; transition:0.2s;"
-                                onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">
+                                style="background:transparent; border:2px solid #ffffff; color:#ffffff; padding:10px 24px; border-radius:12px; font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:1px; cursor:pointer;">
                                 Vote
                             </button>
                         </div>
@@ -239,10 +192,9 @@
 
         window.copyBadgeCode = () => {
             navigator.clipboard.writeText(document.getElementById('badgeCode').innerText);
-            alert("Badge HTML Copied!");
+            alert("Copied!");
         };
 
-        // טעינה ראשונית
         loadIndex();
     </script>
 </body>
