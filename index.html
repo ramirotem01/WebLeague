@@ -44,13 +44,13 @@
 
     <header class="pt-20 pb-10 text-center px-4">
         <h1 class="text-6xl md:text-7xl font-extrabold tracking-tighter mb-6 italic uppercase">Global <span class="accent-text">AI Index</span></h1>
-        <p class="text-slate-400 max-w-3xl mx-auto mb-10 text-lg font-medium">
-            The community-driven leaderboard for AI applications. 
-            Ranked by social proof and live network signals.
+        <p class="text-slate-400 max-w-3xl mx-auto mb-10 text-lg font-medium leading-relaxed">
+            The community-driven leaderboard for AI applications. <br>
+            Analyzed via deep network signals and social authority.
         </p>
         
         <div class="max-w-2xl mx-auto glass p-2 rounded-2xl flex flex-col md:flex-row gap-2 shadow-2xl mb-4 border-white/10">
-            <input type="url" id="urlInput" placeholder="Enter AI Tool URL (e.g., https://ollama.com)" class="flex-1 bg-transparent p-4 outline-none text-white font-medium placeholder:text-slate-600">
+            <input type="url" id="urlInput" placeholder="Enter AI Tool URL (e.g., https://perplexity.ai)" class="flex-1 bg-transparent p-4 outline-none text-white font-medium placeholder:text-slate-600">
             <button onclick="analyzeWebsite()" id="mainBtn" class="btn-gradient px-10 py-4 rounded-xl font-bold flex items-center justify-center gap-3 active:scale-95 transition-all">
                 <span id="btnLabel">Analyze & List</span>
                 <div id="btnSpinner" class="loader hidden"></div>
@@ -59,7 +59,7 @@
         <div id="scanLog" class="text-[9px] font-bold text-slate-600 uppercase tracking-[0.3em] mb-8 h-4"></div>
 
         <div class="max-w-md mx-auto">
-            <input type="text" id="searchInput" oninput="filterTable()" placeholder="Search index..." class="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none focus:border-indigo-500 text-sm">
+            <input type="text" id="searchInput" oninput="filterTable()" placeholder="Search tools..." class="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none focus:border-indigo-500 text-sm">
         </div>
     </header>
 
@@ -77,7 +77,7 @@
                         <div id="metricsVisual" class="flex gap-2"></div>
                     </div>
                 </div>
-                <button onclick="confirmSubmission()" class="bg-white text-black px-12 py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-slate-200 transition-all">Add to Index</button>
+                <button onclick="confirmSubmission()" class="bg-white text-black px-12 py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-slate-200 transition-all">Confirm Listing</button>
             </div>
         </div>
 
@@ -86,15 +86,15 @@
                 <thead>
                     <tr class="text-[10px] uppercase tracking-widest text-slate-500 border-b border-white/5 bg-white/[0.02]">
                         <th class="p-6">Rank</th>
-                        <th class="p-6">AI Application</th>
-                        <th class="p-6">Social Signals</th>
+                        <th class="p-6">Application</th>
+                        <th class="p-6">Live Signals</th>
                         <th class="p-6 text-center">Score</th>
                         <th class="p-6"></th>
                     </tr>
                 </thead>
                 <tbody id="leaderboardBody" class="divide-y divide-white/5"></tbody>
             </table>
-            <div id="loaderText" class="p-20 text-center text-slate-600 text-xs font-bold uppercase tracking-widest animate-pulse">Syncing Index...</div>
+            <div id="loaderText" class="p-20 text-center text-slate-600 text-xs font-bold uppercase tracking-widest animate-pulse">Connecting to PCS365 Index...</div>
         </div>
     </main>
 
@@ -122,7 +122,7 @@
             ];
             for (let p of proxies) {
                 try {
-                    const r = await fetch(p, { signal: AbortSignal.timeout(6000) });
+                    const r = await fetch(p, { signal: AbortSignal.timeout(5000) });
                     const d = await r.json();
                     return d.contents || d;
                 } catch(e) {}
@@ -132,27 +132,30 @@
 
         async function getDeepSignals(name, url) {
             const domain = url.split('/')[2].replace('www.', '').split('.')[0];
-            const queryTarget = domain.length > 3 ? domain : name;
             const log = document.getElementById('scanLog');
-
-            log.innerText = "Querying HackerNews...";
-            const hn = await fetch(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(queryTarget)}&hitsPerPage=5`).then(r => r.json()).catch(() => ({hits:[]}));
             
-            log.innerText = "Scanning Reddit Threads...";
-            const reddit = await robustProxyFetch(`https://www.reddit.com/search.json?q=${encodeURIComponent(queryTarget)}&limit=5`);
+            log.innerText = "Querying Network Authority...";
             
-            log.innerText = "Checking GitHub Repositories...";
-            const gh = await fetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(queryTarget)}&sort=stars`).then(r => r.json()).catch(() => ({items:[]}));
+            const [hn, reddit, gh, wiki] = await Promise.all([
+                fetch(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(domain)}&hitsPerPage=5`).then(r => r.json()).catch(() => ({hits:[]})),
+                robustProxyFetch(`https://www.reddit.com/search.json?q=${encodeURIComponent(domain)}&limit=5`),
+                fetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(domain)}&sort=stars`).then(r => r.json()).catch(() => ({items:[]})),
+                fetch(`https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&list=search&srsearch=${encodeURIComponent(domain)}`).then(r => r.json()).catch(() => ({query:{search:[]}}))
+            ]);
 
             const hCount = hn.hits?.length || 0;
             const rData = (typeof reddit === 'string' ? JSON.parse(reddit) : reddit);
             const rCount = rData?.data?.children?.length || 0;
             const gCount = gh.items?.[0]?.stargazers_count || 0;
+            const wCount = wiki.query?.search?.length || 0;
 
+            // Advanced PR Calculation
             let pr = 1.9;
             pr += (hCount * 0.8) + (rCount * 0.6);
             if(gCount > 0) pr += 1.5 + Math.min(3.5, gCount / 700);
-            if(url.includes('.ai')) pr += 0.8;
+            if(wCount > 0) pr += 1.2; // Wikipedia Authority Bonus
+            if(url.startsWith('https')) pr += 0.3; // Security Bonus
+            if(url.includes('.ai')) pr += 0.5;
 
             log.innerText = "Signals Finalized.";
             setTimeout(() => log.innerText = "", 2000);
@@ -163,22 +166,22 @@
         window.analyzeWebsite = async function() {
             const urlInput = document.getElementById('urlInput');
             const url = urlInput.value.trim();
-            if(!url.startsWith('http')) return alert("Please enter a valid URL");
+            if(!url.startsWith('http')) return alert("Enter valid URL");
 
-            document.getElementById('btnLabel').innerText = "Scanning...";
+            document.getElementById('btnLabel').innerText = "Analyzing...";
             document.getElementById('btnSpinner').classList.remove('hidden');
 
             try {
                 const raw = await robustProxyFetch(url);
                 const docParsed = new DOMParser().parseFromString(raw || '', 'text/html');
                 const title = (docParsed.querySelector('title')?.innerText || url.split('/')[2]).split('|')[0].trim();
-                const desc = docParsed.querySelector('meta[name="description"]')?.content?.substring(0, 100) || "Explore this AI application.";
+                const desc = docParsed.querySelector('meta[name="description"]')?.content?.substring(0, 100) || "AI application indexed by PCS365.";
 
                 const s = await getDeepSignals(title, url);
                 window.tempAI = { url, title, description: desc, pr: s.pr, icon: `https://www.google.com/s2/favicons?sz=128&domain=${url}`, votes: 1, metrics: { reddit: s.r, hn: s.h, github: s.g } };
 
                 updatePreview(window.tempAI);
-            } catch (e) { alert("Analysis timed out."); }
+            } catch (e) { alert("Analysis incomplete. Try again."); }
             finally { 
                 document.getElementById('btnLabel').innerText = "Analyze & List";
                 document.getElementById('btnSpinner').classList.add('hidden');
@@ -201,7 +204,7 @@
 
         function getPRClass(pr) {
             if(pr >= 8) return "bg-yellow-500/20 text-yellow-400 border border-yellow-500/40";
-            if(pr >= 5) return "bg-indigo-600 text-white";
+            if(pr >= 5) return "bg-indigo-600 text-white shadow-lg";
             return "bg-white/10 text-slate-400";
         }
 
@@ -215,7 +218,7 @@
         window.vote = async function(id) {
             const key = `v_log_${new Date().getFullYear()}-W${Math.ceil(new Date().getDate()/7)}`;
             let log = JSON.parse(localStorage.getItem(key) || '[]');
-            if(log.length >= 3) return alert("Weekly limit reached.");
+            if(log.length >= 3) return alert("Weekly limit reached (3 votes).");
             await updateDoc(doc(db, "league_sites", id), { votes: increment(1) });
             log.push(id); localStorage.setItem(key, JSON.stringify(log));
             loadIndex();
@@ -267,10 +270,10 @@
                             </div>
                         </td>
                         <td class="p-6">
-                            <div class="flex flex-col gap-0.5 font-bold text-[9px] uppercase tracking-tighter">
+                            <div class="flex flex-col gap-0.5 font-bold text-[9px] uppercase tracking-tighter whitespace-nowrap">
                                 <span class="text-orange-500/80">Reddit: ${item.metrics?.reddit || 0}</span>
                                 <span class="text-emerald-500/80">HackerN: ${item.metrics?.hn || 0}</span>
-                                <span class="text-blue-500/80">GitHub: ${item.metrics?.github || 0}</span>
+                                <span class="text-blue-500/80">GitHub Stars: ${item.metrics?.github || 0}</span>
                             </div>
                         </td>
                         <td class="p-6 text-center">
