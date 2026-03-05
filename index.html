@@ -260,3 +260,21 @@
                                     <div class="text-[9px] text-indigo-400 font-mono opacity-40">${item.url}</div>
                                 </div>
                             </div>
+                        </td>
+                        <td class="p-8 text-center">
+                            <div class="text-2xl font-black text-white">${item.votes}</div>
+                            <div class="text-[8px] font-bold text-slate-600 uppercase tracking-widest">Points</div>
+                        </td>
+                        <td class="p-8 text-right">
+                            <button onclick="vote('${d.id}')" class="bg-indigo-500/10 hover:bg-indigo-600 border border-indigo-500/20 text-indigo-400 hover:text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase transition-all">Vote</button>
+                        </td>
+                    </tr>`;
+                r++;
+            });
+        };
+
+        refreshUI();
+        loadIndex();
+    </script>
+</body>
+</html>
