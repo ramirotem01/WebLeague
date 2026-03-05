@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PCS365 | Global AI League</title>
+    <title>PCS365 | AI Habits & Tasks Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     
@@ -23,11 +23,9 @@
 
     <div id="badgeModal" class="modal" onclick="closeModal()">
         <div class="glass p-8 rounded-3xl max-w-lg w-full" onclick="event.stopPropagation()">
-            <h3 class="text-2xl font-bold mb-2 text-white">Get Your AI Badge</h3>
-            <div class="bg-black/50 p-4 rounded-xl mb-6 text-center">
-                <div id="badgePreview" class="mb-4 flex justify-center"></div>
-                <code id="badgeCode" class="text-[10px] text-indigo-300 break-all block p-3 bg-white/5 rounded"></code>
-            </div>
+            <h3 class="text-2xl font-bold mb-2 text-white">PCS365 Ranking Badge</h3>
+            <div id="badgePreview" class="mb-4 flex justify-center"></div>
+            <code id="badgeCode" class="text-[10px] text-indigo-300 break-all block p-3 bg-white/5 rounded mb-6"></code>
             <button onclick="copyBadgeCode()" class="w-full bg-indigo-600 py-3 rounded-xl font-bold uppercase">Copy HTML Code</button>
         </div>
     </div>
@@ -35,24 +33,23 @@
     <nav class="p-6 border-b border-white/5 bg-black/20 sticky top-0 z-50 backdrop-blur-md">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-extrabold text-white shadow-lg">AI</div>
-                <span class="text-xl font-extrabold tracking-tight uppercase">PCS365 <span class="text-indigo-400">Index</span></span>
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-extrabold text-white">PCS</div>
+                <span class="text-xl font-extrabold tracking-tight uppercase">pcs365<span class="text-indigo-400">.co.il</span></span>
             </div>
-            <div class="bg-indigo-500/10 border border-indigo-500/20 px-4 py-2 rounded-full">
-                <span class="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">Votes Left: <span id="votesLeft" class="text-white text-xs">3</span></span>
+            <div class="bg-indigo-500/10 border border-indigo-500/20 px-4 py-2 rounded-full font-bold text-indigo-300 text-[10px]">
+                WEEKLY VOTES LEFT: <span id="votesLeft" class="text-white text-xs">3</span>
             </div>
         </div>
     </nav>
 
     <header class="pt-20 pb-10 text-center px-4">
-        <h1 class="text-6xl md:text-7xl font-extrabold tracking-tighter mb-6 italic uppercase">Global <span class="accent-text">AI League</span></h1>
-        <p class="text-slate-400 max-w-3xl mx-auto mb-10 text-lg font-medium italic">
-            "Real-time social signals meet community rankings."
+        <h1 class="text-6xl md:text-7xl font-extrabold tracking-tighter mb-6 italic uppercase italic">AI <span class="accent-text">LEADERBOARD</span></h1>
+        <p class="text-slate-400 max-w-3xl mx-auto mb-10 text-lg font-medium leading-relaxed">
+            מנהלת הרגלים ומשימות, ניתוח מעמיק בעזרת AI של תובנות השבוע, ובכלל אנליזה כללית על אופן ביצוע המשימות והיעדים, מסייעת ומשפרת את התוצאות של המשתמש.
         </p>
         
-        <div class="max-w-2xl mx-auto glass p-2 rounded-2xl flex flex-col md:flex-row gap-2 shadow-2xl mb-8">
-            <input type="url" id="urlInput" placeholder="Paste AI App URL (https://...)" 
-                class="flex-1 bg-transparent p-4 outline-none text-white font-medium placeholder:text-slate-600">
+        <div class="max-w-2xl mx-auto glass p-2 rounded-2xl flex flex-col md:flex-row gap-2 shadow-2xl mb-8 border-white/10">
+            <input type="url" id="urlInput" placeholder="Enter AI Tool URL (e.g., https://perplexity.ai)" class="flex-1 bg-transparent p-4 outline-none text-white font-medium placeholder:text-slate-600">
             <button onclick="analyzeWebsite()" id="mainBtn" class="btn-gradient px-10 py-4 rounded-xl font-bold flex items-center justify-center gap-3 active:scale-95 transition-all">
                 <span id="btnLabel">Analyze & List</span>
                 <div id="btnSpinner" class="loader hidden"></div>
@@ -60,16 +57,15 @@
         </div>
 
         <div class="max-w-md mx-auto relative">
-            <input type="text" id="searchInput" oninput="filterTable()" placeholder="Filter league..." 
-                class="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none focus:border-indigo-500 text-sm">
+            <input type="text" id="searchInput" oninput="filterTable()" placeholder="Search tools in the index..." class="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none focus:border-indigo-500 text-sm">
         </div>
     </header>
 
     <main class="max-w-6xl mx-auto px-4 pb-32">
         <div id="previewCard" class="hidden glass rounded-3xl p-8 mb-8 border-indigo-500/40">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-8 text-left">
-                <div class="flex items-center gap-6">
-                    <img id="siteIcon" src="" class="w-20 h-20 rounded-2xl bg-white/10 p-2 border border-white/10 shadow-2xl">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-8">
+                <div class="flex items-center gap-6 text-left">
+                    <img id="siteIcon" src="" class="w-20 h-20 rounded-2xl bg-white/10 p-2 border border-white/10">
                     <div>
                         <div class="flex items-center gap-3 mb-2">
                             <h2 id="siteTitle" class="text-3xl font-black text-white tracking-tighter"></h2>
@@ -79,24 +75,24 @@
                         <div id="metricsVisual" class="flex gap-2"></div>
                     </div>
                 </div>
-                <button onclick="confirmSubmission()" class="bg-white text-black hover:bg-slate-200 px-12 py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl transition-all">Confirm Listing</button>
+                <button onclick="confirmSubmission()" class="bg-white text-black px-12 py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-slate-200 transition-all">Confirm Listing</button>
             </div>
         </div>
 
         <div class="glass rounded-3xl overflow-hidden border border-white/5 shadow-2xl">
             <table class="w-full text-left">
                 <thead>
-                    <tr class="text-[10px] uppercase tracking-[0.2em] text-slate-500 border-b border-white/5 bg-white/[0.02]">
+                    <tr class="text-[10px] uppercase tracking-widest text-slate-500 border-b border-white/5 bg-white/[0.02]">
                         <th class="p-6">Rank</th>
-                        <th class="p-6">Application</th>
-                        <th class="p-6">Growth Signals</th>
-                        <th class="p-6 text-center">Score</th>
+                        <th class="p-6">AI Application</th>
+                        <th class="p-6">Social Proof</th>
+                        <th class="p-6 text-center">Popularity</th>
                         <th class="p-6"></th>
                     </tr>
                 </thead>
                 <tbody id="leaderboardBody" class="divide-y divide-white/5"></tbody>
             </table>
-            <div id="loaderText" class="p-20 text-center text-slate-600 text-xs font-bold uppercase tracking-widest animate-pulse">Syncing League Data...</div>
+            <div id="loaderText" class="p-20 text-center text-slate-600 text-xs font-bold uppercase tracking-widest animate-pulse">Syncing with PCS365 Index...</div>
         </div>
     </main>
 
@@ -117,49 +113,44 @@
         const db = getFirestore(app);
         let masterData = [];
 
-        // --- STABILIZED MULTI-PROXY FETCHER ---
-        async function fetchWithRetry(url, isJson = true) {
+        // --- STABILIZED SMART FETCHER ---
+        async function robustProxyFetch(url) {
             const proxies = [
-                `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+                `https://api.allorigins.win/get?url=${encodeURIComponent(url)}&t=${Date.now()}`,
                 `https://corsproxy.io/?${encodeURIComponent(url)}`
             ];
-            
-            for (const proxy of proxies) {
+            for (let p of proxies) {
                 try {
-                    const res = await fetch(proxy, { signal: AbortSignal.timeout(6000) });
-                    if (!res.ok) continue;
-                    const data = await res.json();
-                    return isJson ? JSON.parse(data.contents || data) : (data.contents || data);
-                } catch (e) { continue; }
+                    const r = await fetch(p, { signal: AbortSignal.timeout(5500) });
+                    const d = await r.json();
+                    return d.contents || d;
+                } catch(e) {}
             }
             return null;
         }
 
-        async function getStats(name, domain) {
-            // Run all fetches in parallel with individual safety
-            const [hnData, redditData, ghData] = await Promise.all([
-                // HN (Native API - Reliable)
-                fetch(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(name)}&hitsPerPage=5`).then(r => r.json()).catch(() => ({hits:[]})),
-                // Reddit (Proxy needed)
-                fetchWithRetry(`https://www.reddit.com/search.json?q=${encodeURIComponent(name)}&limit=5`),
-                // GitHub (Native API - Use domain name for accuracy like "ollama")
-                fetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(domain)}&sort=stars`).then(r => r.json()).catch(() => ({items:[]}))
+        async function getDeepSignals(name, url) {
+            const domain = url.split('/')[2].replace('www.', '').split('.')[0];
+            const queryTarget = domain.length > 3 ? domain : name;
+
+            const [hn, reddit, gh] = await Promise.all([
+                fetch(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(queryTarget)}&hitsPerPage=5`).then(r => r.json()).catch(() => ({hits:[]})),
+                robustProxyFetch(`https://www.reddit.com/search.json?q=${encodeURIComponent(queryTarget)}&limit=5`),
+                fetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(queryTarget)}&sort=stars`).then(r => r.json()).catch(() => ({items:[]}))
             ]);
 
-            const h = hnData.hits?.length || 0;
-            const r = redditData?.data?.children?.length || 0;
-            const g = ghData.items?.[0]?.stargazers_count || 0;
+            const hCount = hn.hits?.length || 0;
+            const rCount = (typeof reddit === 'string' ? JSON.parse(reddit) : reddit)?.data?.children?.length || 0;
+            const gCount = gh.items?.[0]?.stargazers_count || 0;
 
-            // Logic
-            let score = 2.0;
-            score += (h * 0.7);
-            score += (r * 0.5);
-            if(g > 0) score += 2.0 + Math.min(3.0, g / 1000);
-            if(domain.includes('.ai')) score += 0.8;
+            let pr = 1.9;
+            pr += (hCount * 0.8) + (rCount * 0.6);
+            if(gCount > 0) pr += 1.5 + Math.min(3.5, gCount / 750);
+            if(url.includes('.ai')) pr += 0.8;
 
-            if(h === 0 && r === 0 && g === 0) score = Math.min(score, 2.9);
+            if(hCount === 0 && rCount === 0 && gCount === 0) pr = Math.min(pr, 3.1);
 
-            return { r, h, g, pr: Math.min(9.9, score).toFixed(1) };
+            return { h: hCount, r: rCount, g: gCount, pr: Math.min(9.9, pr).toFixed(1) };
         }
 
         window.analyzeWebsite = async function() {
@@ -167,57 +158,44 @@
             const url = urlInput.value.trim();
             if(!url.startsWith('http')) return alert("Please enter a valid URL");
 
-            document.getElementById('btnLabel').innerText = "Deep Scanning...";
+            document.getElementById('btnLabel').innerText = "Scanning Data...";
             document.getElementById('btnSpinner').classList.remove('hidden');
 
-            const domain = url.split('/')[2].replace('www.', '').split('.')[0];
-
             try {
-                // Get Metadata first
-                const metaRaw = await fetchWithRetry(url, false);
-                const docParsed = new DOMParser().parseFromString(metaRaw || '', 'text/html');
-                const title = (docParsed.querySelector('title')?.innerText || domain).split('|')[0].trim();
-                const desc = docParsed.querySelector('meta[name="description"]')?.content?.substring(0, 100) || "Explore this AI application.";
+                const raw = await robustProxyFetch(url);
+                const docParsed = new DOMParser().parseFromString(raw || '', 'text/html');
+                const title = (docParsed.querySelector('title')?.innerText || url.split('/')[2]).split('|')[0].trim();
+                const desc = docParsed.querySelector('meta[name="description"]')?.content?.substring(0, 100) || "Newly indexed via PCS365.";
 
-                // Get Signals
-                const stats = await getStats(title, domain);
-                
-                window.tempAI = { 
-                    url, title, description: desc, pr: stats.pr, 
-                    icon: `https://www.google.com/s2/favicons?sz=128&domain=${url}`, 
-                    votes: 1, metrics: { reddit: stats.r, hn: stats.h, github: stats.g } 
-                };
+                const s = await getDeepSignals(title, url);
+                window.tempAI = { url, title, description: desc, pr: s.pr, icon: `https://www.google.com/s2/favicons?sz=128&domain=${url}`, votes: 1, metrics: { reddit: s.r, hn: s.h, github: s.g } };
 
                 updatePreview(window.tempAI);
-            } catch (e) {
-                alert("Analysis partially complete.");
-            } finally {
+            } catch (e) { alert("Analysis timed out. Try again."); }
+            finally { 
                 document.getElementById('btnLabel').innerText = "Analyze & List";
                 document.getElementById('btnSpinner').classList.add('hidden');
             }
         };
 
         function updatePreview(data) {
-            const card = document.getElementById('previewCard');
-            const prBadge = document.getElementById('sitePR');
-            prBadge.innerText = `PR ${data.pr}`;
-            prBadge.className = `px-4 py-1 rounded-full font-black text-sm ${getPRClass(data.pr)}`;
-            
             document.getElementById('siteTitle').innerText = data.title;
             document.getElementById('siteDesc').innerText = data.description;
             document.getElementById('siteIcon').src = data.icon;
+            document.getElementById('sitePR').innerText = `PR ${data.pr}`;
+            document.getElementById('sitePR').className = `px-4 py-1 rounded-full font-black text-sm ${getPRClass(data.pr)}`;
             document.getElementById('metricsVisual').innerHTML = `
                 <div class="bg-orange-500/10 text-orange-400 text-[10px] font-bold px-3 py-1 rounded-lg border border-orange-500/20">Reddit: ${data.metrics.reddit}</div>
                 <div class="bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-3 py-1 rounded-lg border border-emerald-500/20">HackerN: ${data.metrics.hn}</div>
-                <div class="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-3 py-1 rounded-lg border border-blue-500/20">GitHub Stars: ${data.metrics.github}</div>
+                <div class="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-3 py-1 rounded-lg border border-blue-500/20">GitHub: ${data.metrics.github}</div>
             `;
-            card.classList.remove('hidden');
+            document.getElementById('previewCard').classList.remove('hidden');
         }
 
         function getPRClass(pr) {
-            if(pr >= 8) return "bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 shadow-lg";
-            if(pr >= 5) return "bg-indigo-600 text-white shadow-lg";
-            return "bg-slate-500/10 text-slate-500 border border-white/5";
+            if(pr >= 8) return "bg-yellow-500/20 text-yellow-400 border border-yellow-500/40";
+            if(pr >= 5) return "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20";
+            return "bg-white/10 text-slate-400";
         }
 
         window.confirmSubmission = async function() {
@@ -231,7 +209,7 @@
         window.vote = async function(id) {
             const key = `v_log_${new Date().getFullYear()}-W${Math.ceil(new Date().getDate()/7)}`;
             let log = JSON.parse(localStorage.getItem(key) || '[]');
-            if(log.length >= 3) return alert("Vote limit reached.");
+            if(log.length >= 3) return alert("You've reached your weekly voting limit.");
             await updateDoc(doc(db, "league_sites", id), { votes: increment(1) });
             log.push(id); localStorage.setItem(key, JSON.stringify(log));
             loadIndex();
@@ -241,7 +219,7 @@
             const code = `<div style="padding:20px; background:#05070a; border:1px solid #4f46e5; border-radius:15px; color:white; text-align:center; font-family:sans-serif; width:220px;">
                 <div style="font-size:10px; color:#818cf8; font-weight:bold; letter-spacing:2px;">RANKED #${rank}</div>
                 <div style="font-size:18px; font-weight:800; margin:10px 0;">${title}</div>
-                <div style="font-size:10px; opacity:0.5;">PCS365 AI LEAGUE</div>
+                <div style="font-size:10px; opacity:0.5;">PCS365 AI INDEX</div>
             </div>`;
             document.getElementById('badgePreview').innerHTML = code;
             document.getElementById('badgeCode').innerText = code;
@@ -249,7 +227,7 @@
         };
 
         window.closeModal = () => document.getElementById('badgeModal').classList.remove('active');
-        window.copyBadgeCode = () => { navigator.clipboard.writeText(document.getElementById('badgeCode').innerText); alert("Copied!"); };
+        window.copyBadgeCode = () => { navigator.clipboard.writeText(document.getElementById('badgeCode').innerText); alert("Badge Code Copied!"); };
 
         window.loadIndex = async function() {
             const q = query(collection(db, "league_sites"), orderBy("votes", "desc"), limit(100));
@@ -258,8 +236,7 @@
             renderTable(masterData);
             document.getElementById('loaderText').classList.add('hidden');
             const key = `v_log_${new Date().getFullYear()}-W${Math.ceil(new Date().getDate()/7)}`;
-            const currentVotes = JSON.parse(localStorage.getItem(key) || '[]').length;
-            document.getElementById('votesLeft').innerText = 3 - currentVotes;
+            document.getElementById('votesLeft').innerText = 3 - JSON.parse(localStorage.getItem(key) || '[]').length;
         };
 
         function renderTable(data) {
@@ -267,7 +244,7 @@
             tbody.innerHTML = '';
             data.forEach((item, i) => {
                 const rank = i + 1;
-                const rIcon = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `<span class="opacity-10">${rank}</span>`;
+                const rIcon = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `<span class="opacity-20">${rank}</span>`;
                 tbody.innerHTML += `
                     <tr>
                         <td class="p-6 font-black text-2xl">${rIcon}</td>
@@ -277,7 +254,7 @@
                                 <div>
                                     <div class="flex items-center gap-2 mb-0.5">
                                         <div class="font-bold text-white text-lg tracking-tight">${item.title}</div>
-                                        <span class="text-[10px] font-black ${getPRClass(item.pr)} px-2 py-0.5 rounded-md whitespace-nowrap">PR ${item.pr || '2.0'}</span>
+                                        <span class="text-[10px] font-black ${getPRClass(item.pr)} px-2 py-0.5 rounded-md">PR ${item.pr || '2.0'}</span>
                                     </div>
                                     <div class="text-[11px] text-slate-500 truncate max-w-[200px] italic">${item.description}</div>
                                 </div>
@@ -292,10 +269,10 @@
                         </td>
                         <td class="p-6 text-center">
                             <div class="text-3xl font-black text-white tracking-tighter">${item.votes}</div>
-                            <div class="text-[8px] font-bold text-slate-600 uppercase tracking-widest">Points</div>
+                            <div class="text-[8px] font-bold text-slate-600 uppercase">Points</div>
                         </td>
                         <td class="p-6 text-right space-x-2">
-                            <button onclick="openBadgeModal('${item.title}', ${rank})" class="text-[10px] font-bold text-slate-600 hover:text-indigo-400 uppercase">Badge</button>
+                            <button onclick="openBadgeModal('${item.title}', ${rank})" class="text-[10px] font-bold text-slate-600 hover:text-indigo-400">BADGE</button>
                             <button onclick="vote('${item.id}')" class="bg-indigo-600/10 hover:bg-indigo-600 border border-indigo-500/20 text-indigo-400 hover:text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all shadow-lg active:scale-95">Vote</button>
                         </td>
                     </tr>`;
