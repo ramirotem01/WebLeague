@@ -231,14 +231,40 @@
         }
 
         function calculatePR() {
-            let pr = 1.0;
-            const m = window.tempAI.metrics;
-            if(m.gh > 0) pr += Math.min(3.0, Math.log10(m.gh + 1));
-            if(m.npm > 0) pr += 1.5;
-            pr += (m.hn || 0) * 0.3 + (m.ph || 0) * 1.0;
-            window.tempAI.pr = Math.min(9.9, pr).toFixed(1);
-            updatePreviewUI();
-        }
+    const m = window.tempAI.metrics;
+    let score = 1.0; // Base PR
+
+    // 1. GitHub Influence (Logarithmic scale)
+    if (m.gh > 0) {
+        score += Math.log10(m.gh + 1) * 1.5; 
+    }
+
+    // 2. Developer Ecosystem (NPM/PyPI/StackOverflow)
+    const devSignals = (m.npm || 0) + (m.pypi || 0) + (m.so || 0);
+    if (devSignals > 0) {
+        score += Math.log10(devSignals + 1) * 1.2;
+    }
+
+    // 3. Social Buzz (HackerNews/Reddit/ProductHunt)
+    // Here we reduce the weight so 20 HN hits won't break the scale
+    const socialSignals = (m.hn || 0) + (m.rd || 0) + (m.ph || 0);
+    if (socialSignals > 0) {
+        score += Math.log10(socialSignals + 1) * 0.8;
+    }
+
+    // 4. Authority (Wikipedia/GitLab)
+    if (m.wk > 0) score += 1.0;
+    if (m.gl > 0) score += 0.5;
+
+    // Final result capped at 9.9
+    window.tempAI.pr = Math.min(9.9, score).toFixed(1);
+    
+    // בבדיקה של clicktak:
+    // log10(20+1) * 0.8 = ~1.05. 
+    // ה-PR החדש יהיה בערך 2.1 במקום 7.0 - הרבה יותר הגיוני!
+    
+    updatePreviewUI();
+}
 
         function updatePreviewUI() {
             document.getElementById('siteTitle').innerText = window.tempAI.title;
