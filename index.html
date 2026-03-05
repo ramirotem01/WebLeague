@@ -1,461 +1,315 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>pcs365 | Weekly AI Leaderboard</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
-
-<style>
-
-body{
-font-family:'Plus Jakarta Sans',sans-serif;
-background:#05070a;
-color:#e2e8f0;
-}
-
-.glass{
-background:rgba(15,23,42,0.8);
-backdrop-filter:blur(16px);
-border:1px solid rgba(255,255,255,0.08);
-}
-
-.hero-glow{
-background:radial-gradient(circle at 50% -20%, #312e81, #05070a);
-}
-
-.accent-text{
-background:linear-gradient(90deg,#818cf8,#c084fc);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
-}
-
-.loader{
-width:18px;
-height:18px;
-border:2px solid rgba(255,255,255,0.1);
-border-top:2px solid #fff;
-border-radius:50%;
-animation:spin 0.6s linear infinite;
-}
-
-@keyframes spin{
-0%{transform:rotate(0deg)}
-100%{transform:rotate(360deg)}
-}
-
-.btn-gradient{
-background:linear-gradient(90deg,#4f46e5,#7c3aed);
-}
-
-.modal{
-display:none;
-position:fixed;
-inset:0;
-background:rgba(0,0,0,0.85);
-z-index:100;
-align-items:center;
-justify-content:center;
-}
-
-.modal.active{
-display:flex;
-}
-
-</style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pcs365 | Weekly AI Leaderboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #05070a; color: #e2e8f0; scroll-behavior: smooth; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); }
+        .hero-glow { background: radial-gradient(circle at 50% -20%, #312e81, #05070a); }
+        .accent-text { background: linear-gradient(90deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .loader { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.1); border-top: 2px solid #ffffff; border-radius: 50%; animation: spin 0.6s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .btn-gradient { background: linear-gradient(90deg, #4f46e5, #7c3aed); transition: all 0.3s ease; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+        .modal.active { display: flex; }
+        .pulse-scan { animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
+        .progress-ring { transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    </style>
 </head>
-
-
-<body class="hero-glow">
-
-<nav class="p-6 border-b border-white/5">
-
-<div class="max-w-6xl mx-auto flex justify-between">
-
-<div class="flex items-center gap-3">
-
-<div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-extrabold">
-AI
-</div>
-
-<span class="text-xl font-extrabold">pcs365</span>
-
-</div>
-
-<div class="text-xs text-indigo-300 font-bold">
-WEEKLY VOTES LEFT:
-<span id="votesLeft" class="text-white">3</span>
-</div>
-
-</div>
-
-</nav>
-
-
-
-<header class="pt-16 pb-10 text-center">
-
-<h1 class="text-6xl font-extrabold mb-6">
-Global <span class="accent-text">AI Index</span>
-</h1>
-
-
-<div class="max-w-2xl mx-auto glass p-2 rounded-xl flex gap-2">
-
-<input
-type="url"
-id="urlInput"
-placeholder="Enter AI tool URL"
-class="flex-1 bg-transparent p-4 outline-none"
-/>
-
-<button
-onclick="analyzeWebsite()"
-id="mainBtn"
-class="btn-gradient px-10 py-4 rounded-xl font-bold flex items-center gap-3"
->
-
-<span id="btnLabel">Analyze</span>
-<div id="btnSpinner" class="loader hidden"></div>
-
-</button>
-
-</div>
-
-<div id="scanLog" class="text-xs text-indigo-400 mt-3"></div>
-
-
-<div class="max-w-md mx-auto mt-6">
-
-<input
-type="text"
-id="searchInput"
-oninput="filterTable()"
-placeholder="Search leaderboard..."
-class="w-full bg-white/5 border border-white/10 p-3 rounded-xl"
-/>
-
-</div>
-
-</header>
-
-
-
-<main class="max-w-6xl mx-auto px-4 pb-20">
-
-
-<div id="previewCard" class="hidden glass rounded-3xl p-8 mb-10">
-
-<div class="flex items-center gap-6">
-
-<img id="siteIcon" class="w-16 h-16 rounded-xl">
-
-<div>
-
-<h2 id="siteTitle" class="text-2xl font-bold"></h2>
-
-<p id="siteDesc" class="text-sm text-slate-400"></p>
-
-<div id="sitePR" class="mt-2 text-xs"></div>
-
-<div id="metricsVisual" class="flex gap-3 mt-3 text-xs"></div>
-
-</div>
-
-</div>
-
-<button
-onclick="confirmSubmission()"
-class="mt-6 bg-white text-black px-10 py-4 rounded-xl font-bold"
->
-
-Add To Leaderboard
-
-</button>
-
-</div>
-
-
-
-<div class="glass rounded-3xl overflow-hidden">
-
-<table class="w-full text-left">
-
-<thead class="text-xs text-slate-500 border-b border-white/5">
-
-<tr>
-
-<th class="p-6">Rank</th>
-<th class="p-6">AI Tool</th>
-<th class="p-6">Signals</th>
-<th class="p-6 text-center">Score</th>
-<th class="p-6"></th>
-
-</tr>
-
-</thead>
-
-<tbody id="leaderboardBody"></tbody>
-
-</table>
-
-<div id="loaderText" class="p-20 text-center text-slate-500">
-Loading Index...
-</div>
-
-</div>
-
-</main>
-
-
-
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, query, getDocs, orderBy, limit, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-const firebaseConfig = {
-
-apiKey: "AIzaSyBs8x4SVn65rzWrQJxbwxpOj2XvoNFMhBI",
-authDomain: "webleague-7b833.firebaseapp.com",
-projectId: "webleague-7b833",
-storageBucket: "webleague-7b833.appspot.com",
-messagingSenderId: "689675956792",
-appId: "1:689675956792:web:eeaeecd758e49dc9506ccd"
-
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-let masterData=[];
-
-
-
-async function getDeepSignals(domain){
-
-let hn=0;
-let reddit=0;
-let github=0;
-
-try{
-
-const hnRes=await fetch(`https://hn.algolia.com/api/v1/search?query=${domain}`);
-const hnData=await hnRes.json();
-hn=hnData.hits.length;
-
-}catch{}
-
-try{
-
-const rRes=await fetch(`https://www.reddit.com/search.json?q=${domain}&limit=10`);
-const rData=await rRes.json();
-reddit=rData.data.children.length;
-
-}catch{}
-
-try{
-
-const gRes=await fetch(`https://api.github.com/search/repositories?q=${domain}`);
-const gData=await gRes.json();
-github=gData.items?.[0]?.stargazers_count || 0;
-
-}catch{}
-
-let pr=1;
-
-pr+=hn*0.5;
-pr+=reddit*0.3;
-pr+=Math.log10(github+1);
-
-pr=Math.min(9.9,pr);
-
-return{
-
-hn,
-reddit,
-github,
-pr:pr.toFixed(1)
-
-};
-
-}
-
-
-
-window.analyzeWebsite=async function(){
-
-let url=document.getElementById("urlInput").value.trim();
-
-if(!url)return;
-
-if(!url.startsWith("http")) url="https://"+url;
-
-const domain=url.split("/")[2].replace("www.","");
-
-document.getElementById("btnSpinner").classList.remove("hidden");
-
-const signals=await getDeepSignals(domain);
-
-window.tempAI={
-
-url,
-title:domain,
-description:`AI solution for ${domain}`,
-icon:`https://logo.clearbit.com/${domain}`,
-votes:1,
-pr:signals.pr,
-
-metrics:{
-reddit:signals.reddit,
-hn:signals.hn,
-github:signals.github
-}
-
-};
-
-updatePreview(window.tempAI);
-
-document.getElementById("btnSpinner").classList.add("hidden");
-
-};
-
-
-
-function updatePreview(data){
-
-siteTitle.innerText=data.title;
-siteDesc.innerText=data.description;
-siteIcon.src=data.icon;
-
-sitePR.innerText="PR "+data.pr;
-
-metricsVisual.innerHTML=`
-<div>Reddit: ${data.metrics.reddit}</div>
-<div>HN: ${data.metrics.hn}</div>
-<div>GitHub: ${data.metrics.github}</div>
-`;
-
-previewCard.classList.remove("hidden");
-
-}
-
-
-
-window.confirmSubmission=async function(){
-
-await addDoc(collection(db,"league_sites"),window.tempAI);
-
-previewCard.classList.add("hidden");
-
-loadIndex();
-
-};
-
-
-
-window.vote=async function(id){
-
-await updateDoc(doc(db,"league_sites",id),{
-
-votes:increment(1)
-
-});
-
-loadIndex();
-
-};
-
-
-
-window.loadIndex=async function(){
-
-const q=query(collection(db,"league_sites"),orderBy("votes","desc"),limit(100));
-
-const snap=await getDocs(q);
-
-masterData=snap.docs.map(d=>({id:d.id,...d.data()}));
-
-renderTable(masterData);
-
-loaderText.style.display="none";
-
-};
-
-
-
-function renderTable(data){
-
-leaderboardBody.innerHTML="";
-
-data.forEach((item,i)=>{
-
-const rank=i+1;
-
-const score=(item.votes*item.pr).toFixed(1);
-
-leaderboardBody.innerHTML+=`
-
-<tr>
-
-<td class="p-6 font-bold">${rank}</td>
-
-<td class="p-6">
-
-<div class="flex items-center gap-3">
-
-<img src="${item.icon}"
-onerror="this.src='https://www.google.com/s2/favicons?sz=64&domain=${item.url}'"
-class="w-8 h-8">
-
-${item.title}
-
-</div>
-
-</td>
-
-<td class="p-6 text-xs">
-
-Reddit ${item.metrics?.reddit || 0}<br>
-HN ${item.metrics?.hn || 0}<br>
-GitHub ${item.metrics?.github || 0}
-
-</td>
-
-<td class="p-6 text-center font-bold">
-${score}
-</td>
-
-<td class="p-6">
-
-<button onclick="vote('${item.id}')"
-class="bg-indigo-600 px-4 py-2 rounded text-xs">
-Vote
-</button>
-
-</td>
-
-</tr>
-
-`;
-
-});
-
-}
-
-
-
-window.filterTable=function(){
-
-const val=searchInput.value.toLowerCase();
-
-const filtered=masterData.filter(x=>
-
-Oops the message cut due to length; need continue but must ensure full code. I'll append remaining part. But ensure not to break instructions about code blocks? It's fine. Continue.
+<body class="min-h-screen hero-glow">
+
+    <div id="badgeModal" class="modal" onclick="closeModal()">
+        <div class="glass p-8 rounded-3xl max-w-lg w-full" onclick="event.stopPropagation()">
+            <h3 class="text-2xl font-bold mb-2 text-white italic uppercase tracking-tighter text-center">Ranking Badge</h3>
+            <div id="badgePreview" class="my-8 flex justify-center"></div>
+            <code id="badgeCode" class="text-[10px] text-indigo-300 break-all block p-4 bg-black/40 border border-white/5 rounded-xl mb-6"></code>
+            <button onclick="copyBadgeCode()" class="w-full bg-white text-black py-4 rounded-xl font-black uppercase tracking-widest hover:bg-indigo-400 transition-colors">Copy Embed Code</button>
+        </div>
+    </div>
+
+    <nav class="p-6 border-b border-white/5 bg-black/20 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-extrabold text-white shadow-lg">AI</div>
+                <span class="text-xl font-extrabold tracking-tight uppercase">pcs365</span>
+            </div>
+            <div class="bg-indigo-500/10 border border-indigo-500/20 px-4 py-2 rounded-full font-bold text-indigo-300 text-[10px] tracking-widest uppercase">
+                Votes Left: <span id="votesLeft" class="text-white text-xs">3</span>
+            </div>
+        </div>
+    </nav>
+
+    <header class="pt-20 pb-10 text-center px-4">
+        <h1 class="hero-title text-6xl md:text-7xl font-extrabold tracking-tighter mb-6 italic uppercase">
+            Global <span class="accent-text">AI Index</span>
+        </h1>
+        <p class="text-slate-400 max-w-3xl mx-auto mb-10 text-lg font-medium">
+            Real-time neural ranking based on open API signals.
+        </p>
+        
+        <div class="max-w-2xl mx-auto glass p-2 rounded-2xl flex flex-col md:flex-row gap-2 shadow-2xl mb-8 border-white/10">
+            <input type="url" id="urlInput" placeholder="Paste AI tool URL (e.g. perplexity.ai)" class="flex-1 bg-transparent p-4 outline-none text-white font-medium">
+            <button onclick="analyzeWebsite()" id="mainBtn" class="btn-gradient px-10 py-4 rounded-xl font-bold flex items-center justify-center gap-3 active:scale-95 transition-all">
+                <span>Analyze Signals</span>
+                <div id="btnSpinner" class="loader hidden"></div>
+            </button>
+        </div>
+
+        <div class="max-w-md mx-auto">
+            <input type="text" id="searchInput" oninput="filterTable()" placeholder="Search tools..." class="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none text-sm">
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 pb-32">
+        <div id="previewCard" class="hidden mb-12">
+            <div class="glass rounded-[2rem] p-1 border-indigo-500/30 bg-gradient-to-b from-indigo-500/10 to-transparent">
+                <div class="p-8 rounded-[1.9rem] bg-[#05070a]/90">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                        <div class="flex flex-col items-center text-center lg:items-start lg:text-left gap-4">
+                            <img id="siteIcon" src="" class="w-24 h-24 rounded-3xl shadow-2xl border border-white/10 p-2 bg-black">
+                            <div>
+                                <h2 id="siteTitle" class="text-4xl font-black text-white tracking-tighter mb-2"></h2>
+                                <p id="siteDesc" class="text-slate-400 text-sm italic leading-relaxed"></p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-4">
+                            <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-2">Live API Analysis</h4>
+                            <div id="signalGrid" class="grid grid-cols-2 gap-3">
+                                </div>
+                        </div>
+
+                        <div class="flex flex-col items-center justify-center bg-white/5 rounded-3xl p-6 border border-white/5">
+                            <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Neural PR Score</span>
+                            <div class="relative flex items-center justify-center mb-6">
+                                <div id="sitePR" class="text-6xl font-black italic tracking-tighter">0.0</div>
+                                <div class="absolute -inset-4 border-2 border-indigo-500/20 rounded-full animate-spin-slow"></div>
+                            </div>
+                            <div class="w-full bg-white/10 h-1.5 rounded-full mb-8 overflow-hidden">
+                                <div id="prProgress" class="progress-ring h-full bg-gradient-to-r from-orange-500 via-indigo-500 to-purple-500" style="width: 0%"></div>
+                            </div>
+                            <button id="confirmBtn" onclick="confirmSubmission()" class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase tracking-widest hover:scale-[1.02] transition-transform disabled:opacity-30 disabled:pointer-events-none">Collecting Data...</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass rounded-3xl overflow-hidden border border-white/5">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="text-[10px] uppercase tracking-widest text-slate-500 border-b border-white/5 bg-white/[0.02]">
+                        <th class="p-6">Rank</th>
+                        <th class="p-6">Application</th>
+                        <th class="p-6">Source Signals</th>
+                        <th class="p-6 text-center">Votes</th>
+                        <th class="p-6"></th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody" class="divide-y divide-white/5"></tbody>
+            </table>
+            <div id="loaderText" class="p-20 text-center text-slate-600 text-xs font-bold uppercase tracking-widest animate-pulse">Syncing Leaderboard...</div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, limit, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBs8x4SVn65rzWrQJxbwxpOj2XvoNFMhBI",
+            authDomain: "webleague-7b833.firebaseapp.com",
+            projectId: "webleague-7b833",
+            storageBucket: "webleague-7b833.firebasestorage.app",
+            messagingSenderId: "689675956792",
+            appId: "1:689675956792:web:eeaeecd758e49dc9506ccd"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        let masterData = [];
+
+        const SOURCES = [
+            { id: 'gh', name: 'GitHub Stars', color: 'blue', weight: 3.5 },
+            { id: 'rd', name: 'Reddit Buzz', color: 'orange', weight: 0.5 },
+            { id: 'hn', name: 'HackerNews', color: 'emerald', weight: 0.8 },
+            { id: 'ph', name: 'ProductHunt', color: 'red', weight: 1.5 },
+            { id: 'wk', name: 'Wikipedia', color: 'slate', weight: 1.0 }
+        ];
+
+        async function fetchMetadata(url, domain) {
+            try {
+                const res = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`);
+                const data = await res.json();
+                return {
+                    title: data.data?.title || domain,
+                    description: data.data?.description || "AI tool analysis in progress...",
+                    image: data.data?.logo?.url || `https://logo.clearbit.com/${domain}.com`
+                };
+            } catch (e) {
+                return { title: domain, description: "Tool discovered via social signals.", image: "" };
+            }
+        }
+
+        window.analyzeWebsite = async function() {
+            let url = document.getElementById('urlInput').value.trim();
+            if(!url) return;
+            if(!url.startsWith('http')) url = 'https://' + url;
+            const domain = url.split('/')[2].replace('www.', '').split('.')[0];
+
+            // Setup UI
+            document.getElementById('previewCard').classList.remove('hidden');
+            document.getElementById('btnSpinner').classList.remove('hidden');
+            initSignalGrid();
+            
+            const meta = await fetchMetadata(url, domain);
+            window.tempAI = { 
+                url, title: meta.title, description: meta.description, 
+                icon: meta.image || `https://www.google.com/s2/favicons?sz=128&domain=${url}`,
+                votes: 1, pr: 1.0, 
+                metrics: { gh: 0, rd: 0, hn: 0, ph: 0, wk: 0 } 
+            };
+            updatePreviewUI();
+
+            // Parallel Incremental Fetching
+            const fetchers = [
+                { id: 'gh', fetch: () => fetch(`https://api.github.com/search/repositories?q=${domain}&sort=stars`).then(r=>r.json()).then(d=>d.items?.[0]?.stargazers_count || 0) },
+                { id: 'rd', fetch: () => fetch(`https://www.reddit.com/search.json?q=${domain}&limit=10`).then(r=>r.json()).then(d=>d.data?.children?.length || 0) },
+                { id: 'hn', fetch: () => fetch(`https://hn.algolia.com/api/v1/search?query=${domain}`).then(r=>r.json()).then(d=>d.hits?.length || 0) },
+                { id: 'ph', fetch: () => fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://www.producthunt.com/search?q='+domain)}`).then(r=>r.json()).then(d=>d.contents.includes('posts') ? 1 : 0) },
+                { id: 'wk', fetch: () => fetch(`https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&list=search&srsearch=${domain}`).then(r=>r.json()).then(d=>d.query?.search?.length > 0 ? 1 : 0) }
+            ];
+
+            await Promise.allSettled(fetchers.map(async (f) => {
+                try {
+                    const val = await f.fetch();
+                    window.tempAI.metrics[f.id] = val;
+                    markSignalComplete(f.id, val);
+                    calculatePR();
+                } catch(e) { markSignalComplete(f.id, 0); }
+            }));
+
+            document.getElementById('btnSpinner').classList.add('hidden');
+            document.getElementById('confirmBtn').disabled = false;
+            document.getElementById('confirmBtn').innerText = "Add to Leaderboard";
+        };
+
+        function initSignalGrid() {
+            const grid = document.getElementById('signalGrid');
+            grid.innerHTML = SOURCES.map(s => `
+                <div id="sig-${s.id}" class="bg-white/5 border border-white/5 p-3 rounded-2xl flex flex-col gap-1 transition-all">
+                    <span class="text-[9px] uppercase font-bold text-slate-500">${s.name}</span>
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-slate-700 pulse-scan"></div>
+                        <span class="text-xs font-black text-slate-600">Scanning...</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function markSignalComplete(id, val) {
+            const s = SOURCES.find(x => x.id === id);
+            const el = document.getElementById(`sig-${id}`);
+            el.className = `bg-${s.color}-500/10 border border-${s.color}-500/20 p-3 rounded-2xl flex flex-col gap-1 transition-all scale-105`;
+            el.innerHTML = `
+                <span class="text-[9px] uppercase font-bold text-${s.color}-400">${s.name}</span>
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-${s.color}-500 shadow-[0_0_8px_${s.color}55]"></div>
+                    <span class="text-xs font-black text-white">${val > 1000 ? (val/1000).toFixed(1)+'k' : val}</span>
+                </div>
+            `;
+            setTimeout(() => el.classList.remove('scale-105'), 200);
+        }
+
+        function calculatePR() {
+            let pr = 1.0;
+            const m = window.tempAI.metrics;
+            if(m.gh > 0) pr += Math.min(3.5, Math.log10(m.gh + 1));
+            pr += (m.rd * 0.2) + (m.hn * 0.4) + (m.ph * 1.5) + (m.wk * 1.0);
+            if(window.tempAI.url.includes('.ai')) pr += 0.5;
+            
+            window.tempAI.pr = Math.min(9.9, pr).toFixed(1);
+            updatePreviewUI();
+        }
+
+        function updatePreviewUI() {
+            document.getElementById('siteTitle').innerText = window.tempAI.title;
+            document.getElementById('siteDesc').innerText = window.tempAI.description;
+            document.getElementById('siteIcon').src = window.tempAI.icon;
+            document.getElementById('sitePR').innerText = window.tempAI.pr;
+            document.getElementById('prProgress').style.width = `${(window.tempAI.pr / 10) * 100}%`;
+            
+            const color = window.tempAI.pr > 7 ? '#c084fc' : window.tempAI.pr > 4 ? '#818cf8' : '#64748b';
+            document.getElementById('sitePR').style.color = color;
+        }
+
+        window.confirmSubmission = async function() {
+            await addDoc(collection(db, "league_sites"), window.tempAI);
+            document.getElementById('previewCard').classList.add('hidden');
+            document.getElementById('urlInput').value = '';
+            loadIndex();
+        };
+
+        window.vote = async function(id) {
+            const key = `v_log_${new Date().getFullYear()}-W${Math.ceil(new Date().getDate()/7)}`;
+            let log = JSON.parse(localStorage.getItem(key) || '[]');
+            if(log.length >= 3) return alert("Weekly limit reached (3/3).");
+            await updateDoc(doc(db, "league_sites", id), { votes: increment(1) });
+            log.push(id); localStorage.setItem(key, JSON.stringify(log));
+            loadIndex();
+        };
+
+        window.loadIndex = async function() {
+            const q = query(collection(db, "league_sites"), orderBy("votes", "desc"), limit(100));
+            const snap = await getDocs(q);
+            masterData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            renderTable(masterData);
+            document.getElementById('loaderText').classList.add('hidden');
+            const key = `v_log_${new Date().getFullYear()}-W${Math.ceil(new Date().getDate()/7)}`;
+            document.getElementById('votesLeft').innerText = 3 - JSON.parse(localStorage.getItem(key) || '[]').length;
+        };
+
+        function renderTable(data) {
+            const tbody = document.getElementById('leaderboardBody');
+            tbody.innerHTML = data.map((item, i) => `
+                <tr class="hover:bg-white/[0.02] transition-colors">
+                    <td class="p-6 font-black text-2xl opacity-40">${i + 1}</td>
+                    <td class="p-6">
+                        <div class="flex items-center gap-4">
+                            <img src="${item.icon}" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 p-1">
+                            <div>
+                                <div class="font-bold text-white">${item.title}</div>
+                                <div class="text-[10px] text-slate-500 uppercase font-black">PR ${item.pr}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-6">
+                        <div class="flex gap-2">
+                            ${Object.entries(item.metrics || {}).filter(([k,v]) => v > 0).map(([k,v]) => `
+                                <span class="text-[8px] font-bold px-2 py-0.5 rounded-md bg-white/5 text-slate-400 uppercase border border-white/5">${k}:${v}</span>
+                            `).join('')}
+                        </div>
+                    </td>
+                    <td class="p-6 text-center font-black text-xl">${item.votes}</td>
+                    <td class="p-6 text-right">
+                        <button onclick="vote('${item.id}')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase transition-all">Vote</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        window.filterTable = () => {
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            renderTable(masterData.filter(s => s.title.toLowerCase().includes(term)));
+        };
+
+        loadIndex();
+    </script>
+</body>
+</html>
