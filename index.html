@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>pcs365 | Global AI Index & Ranking</title>
+    <title>pcs365 | Global AI Index</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     
@@ -17,19 +17,18 @@
         .progress-fill { transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
         .modal.active { display: flex; }
+        .btn-loading { opacity: 0.5; pointer-events: none; cursor: not-allowed; }
     </style>
 </head>
 <body class="min-h-screen hero-glow">
 
     <div id="badgeModal" class="modal" onclick="closeModal()">
         <div class="glass p-8 rounded-[2rem] max-w-lg w-full text-center" onclick="event.stopPropagation()">
-            <h3 class="text-2xl font-black mb-2 text-white italic uppercase tracking-tighter">Share This Ranking</h3>
-            <p class="text-slate-400 text-sm mb-6">Embed this live PR badge on your website or GitHub README.</p>
+            <h3 class="text-2xl font-black mb-2 text-white italic uppercase tracking-tighter text-indigo-400">Embed Your Badge</h3>
+            <p class="text-slate-400 text-sm mb-6 italic">Showcase your AI's Neural PR on your website or repository.</p>
             <div id="badgePreview" class="mb-8 flex justify-center scale-110"></div>
-            <div class="relative group">
-                <code id="badgeCode" class="text-[10px] text-indigo-300 break-all block p-4 bg-black/60 border border-white/10 rounded-xl mb-6 text-left"></code>
-                <button onclick="copyBadgeCode()" class="w-full bg-white text-black py-4 rounded-xl font-black uppercase tracking-widest hover:bg-indigo-400 transition-colors">Copy Code</button>
-            </div>
+            <code id="badgeCode" class="text-[10px] text-indigo-300 break-all block p-4 bg-black/60 border border-white/10 rounded-xl mb-6 text-left"></code>
+            <button onclick="copyBadgeCode()" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:bg-indigo-500 transition-colors">Copy Embed Code</button>
         </div>
     </div>
 
@@ -39,8 +38,8 @@
                 <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-extrabold text-white">AI</div>
                 <span class="text-xl font-extrabold tracking-tight uppercase">pcs365</span>
             </div>
-            <div class="bg-indigo-500/10 border border-indigo-500/20 px-4 py-2 rounded-full font-bold text-indigo-300 text-[10px] tracking-widest uppercase">
-                Votes Remaining: <span id="votesLeft" class="text-white">3</span>
+            <div class="bg-white/5 border border-white/10 px-4 py-2 rounded-full font-bold text-slate-400 text-[10px] tracking-widest uppercase">
+                Votes Left: <span id="votesLeft" class="text-white">3</span>
             </div>
         </div>
     </nav>
@@ -48,12 +47,12 @@
     <header class="pt-20 pb-12 text-center px-4">
         <h1 class="text-6xl md:text-7xl font-extrabold tracking-tighter mb-4 italic uppercase">Neural <span class="accent-text">AI Index</span></h1>
         <p class="text-slate-400 max-w-2xl mx-auto mb-10 text-lg">
-            Discover and rank the world's most impactful AI tools based on real-time developer signals, social buzz, and public API data. 
-            <span class="block mt-2 text-sm font-bold text-indigo-400 uppercase tracking-widest">Submit your tool to start the analysis.</span>
+            A real-time leaderboard ranking AI applications by developer adoption and social impact. 
+            <span class="block mt-2 text-sm font-bold text-indigo-400 uppercase tracking-widest">Connect your tool to the global AI grid.</span>
         </p>
         
         <div class="max-w-2xl mx-auto glass p-2 rounded-2xl flex flex-col md:flex-row gap-2 shadow-2xl mb-12 border-white/10">
-            <input type="url" id="urlInput" placeholder="Enter URL (e.g. anthropic.com)" class="flex-1 bg-transparent p-4 outline-none text-white font-medium">
+            <input type="url" id="urlInput" placeholder="Enter Tool URL (e.g. v0.dev)" class="flex-1 bg-transparent p-4 outline-none text-white font-medium">
             <button onclick="analyzeWebsite()" id="mainBtn" class="bg-indigo-600 hover:bg-indigo-500 px-10 py-4 rounded-xl font-bold flex items-center justify-center gap-3 transition-all active:scale-95">
                 <span>Analyze</span>
                 <div id="btnSpinner" class="loader hidden"></div>
@@ -64,47 +63,51 @@
     <main class="max-w-7xl mx-auto px-6 pb-32">
         
         <div id="previewCard" class="hidden mb-16">
-            <div class="glass rounded-[2.5rem] p-1 border-indigo-500/30 bg-gradient-to-b from-indigo-500/20 to-transparent">
+            <div class="glass rounded-[2.5rem] p-1 border-indigo-500/30">
                 <div class="bg-[#0b0f1a]/90 rounded-[2.4rem] p-8">
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
                         <div class="lg:col-span-3 flex flex-col items-center lg:items-start text-center lg:text-left">
                             <img id="siteIcon" src="" class="w-24 h-24 rounded-3xl mb-6 border border-white/10 bg-black p-2 shadow-2xl">
                             <h2 id="siteTitle" class="text-3xl font-black text-white italic mb-2 truncate w-full"></h2>
-                            <p id="siteDesc" class="text-slate-500 text-sm line-clamp-3 italic"></p>
+                            <p id="siteDesc" class="text-slate-500 text-xs italic line-clamp-3"></p>
                         </div>
                         
                         <div class="lg:col-span-6 border-x border-white/5 px-6">
-                            <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-6 italic">Deep Signal Mesh Analysis</h4>
+                            <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-6 italic">API Mesh Connectivity</h4>
                             <div id="signalGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
                         </div>
 
                         <div class="lg:col-span-3 flex flex-col items-center justify-center text-center">
-                            <span class="text-[10px] font-black text-slate-500 uppercase mb-2">Social PR Score</span>
+                            <span class="text-[10px] font-black text-slate-500 uppercase mb-2">Calculated Rank</span>
                             <div id="sitePR" class="text-7xl font-black italic tracking-tighter text-white mb-6">0.0</div>
-                            <div class="w-full bg-white/5 h-2 rounded-full mb-8 overflow-hidden">
-                                <div id="prProgress" class="progress-fill h-full bg-gradient-to-r from-orange-500 via-indigo-500 to-purple-500" style="width: 0%"></div>
+                            <div class="w-full bg-white/5 h-2 rounded-full mb-6 overflow-hidden">
+                                <div id="prProgress" class="progress-fill h-full bg-indigo-500" style="width: 0%"></div>
                             </div>
-                            <button id="confirmBtn" onclick="confirmSubmission()" class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-indigo-400 transition-colors disabled:opacity-20">Analyzing APIs...</button>
+                            
+                            <div class="flex flex-col w-full gap-3">
+                                <button id="confirmBtn" onclick="confirmSubmission()" class="btn-loading w-full bg-white text-black py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all">Scanning Signals...</button>
+                                <button onclick="openShareFromPreview()" class="w-full bg-white/5 border border-white/10 text-slate-400 py-3 rounded-xl font-bold uppercase text-[10px] hover:bg-white/10 transition-all tracking-widest">Get Embed Code</button>
+                            </div>
+                            <div id="statusMsg" class="mt-4 text-[10px] font-black uppercase tracking-widest hidden"></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="glass rounded-3xl overflow-hidden shadow-2xl">
+        <div class="glass rounded-3xl overflow-hidden shadow-2xl border border-white/5">
             <table class="w-full text-left">
                 <thead>
                     <tr class="text-[11px] uppercase tracking-widest text-slate-500 border-b border-white/5 bg-white/[0.02]">
                         <th class="p-6">Rank</th>
-                        <th class="p-6">AI Platform</th>
-                        <th class="p-6">Active Signals</th>
-                        <th class="p-6 text-center">Community Votes</th>
+                        <th class="p-6">AI Application</th>
+                        <th class="p-6">Signals</th>
+                        <th class="p-6 text-center">Votes</th>
                         <th class="p-6"></th>
                     </tr>
                 </thead>
                 <tbody id="leaderboardBody" class="divide-y divide-white/5"></tbody>
             </table>
-            <div id="loadingState" class="p-20 text-center text-slate-600 text-xs font-black uppercase tracking-[0.3em] animate-pulse">Syncing Leaderboard...</div>
         </div>
     </main>
 
@@ -146,6 +149,13 @@
 
             document.getElementById('previewCard').classList.remove('hidden');
             document.getElementById('btnSpinner').classList.remove('hidden');
+            document.getElementById('statusMsg').classList.add('hidden');
+            
+            // Disable button during analysis
+            const confirmBtn = document.getElementById('confirmBtn');
+            confirmBtn.classList.add('btn-loading');
+            confirmBtn.innerText = "Scanning Signals...";
+
             initSignalGrid();
 
             const metaRes = await fetch(`https://api.microlink.io?url=${encodeURIComponent(urlInput)}`);
@@ -180,16 +190,31 @@
                 } catch(e) { markSignalComplete(t.id, 0); }
             }));
 
+            // Check if exists for status msg
+            const q = query(collection(db, "league_sites"), where("url", "==", window.tempAI.url));
+            const snap = await getDocs(q);
+            const statusEl = document.getElementById('statusMsg');
+            statusEl.classList.remove('hidden');
+            
+            if(!snap.empty) {
+                statusEl.innerText = "System Synced: Existing entry found. Updating signals.";
+                statusEl.className = "mt-4 text-[10px] font-black uppercase tracking-widest text-indigo-400 italic";
+                confirmBtn.innerText = "Sync Existing Data";
+            } else {
+                statusEl.innerText = "Ready: New platform detected.";
+                statusEl.className = "mt-4 text-[10px] font-black uppercase tracking-widest text-emerald-400 italic";
+                confirmBtn.innerText = "Add to Leaderboard";
+            }
+
+            confirmBtn.classList.remove('btn-loading');
             document.getElementById('btnSpinner').classList.add('hidden');
-            document.getElementById('confirmBtn').disabled = false;
-            document.getElementById('confirmBtn').innerText = "Add to Leaderboard";
         };
 
         function initSignalGrid() {
             document.getElementById('signalGrid').innerHTML = SOURCES.map(s => `
                 <div id="sig-${s.id}" class="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col gap-1">
-                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">${s.name}</span>
-                    <div class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-slate-700 animate-pulse"></div><span class="text-[10px] text-slate-600">Syncing</span></div>
+                    <span class="text-[9px] font-bold text-slate-500 uppercase">${s.name}</span>
+                    <div class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-slate-700 animate-pulse"></div><span class="text-[10px] text-slate-600">...</span></div>
                 </div>`).join('');
         }
 
@@ -197,7 +222,7 @@
             const s = SOURCES.find(x => x.id === id);
             const el = document.getElementById(`sig-${id}`);
             if(!el) return;
-            el.className = `bg-${s.color}-500/10 border border-${s.color}-500/20 p-3 rounded-xl flex flex-col transition-all`;
+            el.className = `bg-${s.color}-500/10 border border-${s.color}-500/20 p-3 rounded-xl flex flex-col`;
             el.innerHTML = `<span class="text-${s.color}-400 text-[9px] font-bold uppercase">${s.name}</span>
                             <div class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-${s.color}-500"></div><span class="text-white text-xs font-black">${val}</span></div>`;
         }
@@ -206,7 +231,7 @@
             let pr = 1.0;
             const m = window.tempAI.metrics;
             if(m.gh > 0) pr += Math.min(3.0, Math.log10(m.gh + 1));
-            if(m.npm > 0 || m.pypi > 0) pr += 1.5;
+            if(m.npm > 0) pr += 1.5;
             pr += (m.hn || 0) * 0.3 + (m.ph || 0) * 1.0;
             window.tempAI.pr = Math.min(9.9, pr).toFixed(1);
             updatePreviewUI();
@@ -224,7 +249,6 @@
             const q = query(collection(db, "league_sites"), where("url", "==", window.tempAI.url));
             const snap = await getDocs(q);
             if (!snap.empty) {
-                alert("This AI platform is already indexed. Updating signals only.");
                 await updateDoc(doc(db, "league_sites", snap.docs[0].id), { metrics: window.tempAI.metrics, pr: window.tempAI.pr });
             } else {
                 await addDoc(collection(db, "league_sites"), window.tempAI);
@@ -236,7 +260,7 @@
         window.vote = async function(id) {
             const key = `v_log_${new Date().getFullYear()}-W${Math.ceil(new Date().getDate()/7)}`;
             let log = JSON.parse(localStorage.getItem(key) || '[]');
-            if(log.length >= 3) return alert("You've reached your weekly voting limit (3/3).");
+            if(log.length >= 3) return alert("Weekly limit reached (3/3).");
             await updateDoc(doc(db, "league_sites", id), { votes: increment(1) });
             log.push(id); localStorage.setItem(key, JSON.stringify(log));
             loadIndex();
@@ -247,7 +271,6 @@
             const snap = await getDocs(q);
             masterData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             renderTable(masterData);
-            document.getElementById('loadingState').classList.add('hidden');
             const key = `v_log_${new Date().getFullYear()}-W${Math.ceil(new Date().getDate()/7)}`;
             document.getElementById('votesLeft').innerText = 3 - JSON.parse(localStorage.getItem(key) || '[]').length;
         };
@@ -257,17 +280,15 @@
             tbody.innerHTML = data.map((item, i) => `
                 <tr class="hover:bg-white/[0.02] transition-colors">
                     <td class="p-6 font-black text-3xl opacity-10 italic">${i + 1}</td>
-                    <td class="p-6">
-                        <div class="flex items-center gap-4">
-                            <img src="${item.icon}" class="w-12 h-12 rounded-2xl bg-black border border-white/10 p-2">
-                            <div>
-                                <div class="font-bold text-white text-lg">${item.title}</div>
-                                <div class="text-[10px] text-indigo-400 font-black tracking-widest uppercase">Social PR ${item.pr}</div>
-                            </div>
+                    <td class="p-6 flex items-center gap-4">
+                        <img src="${item.icon}" class="w-12 h-12 rounded-2xl bg-black border border-white/10 p-2">
+                        <div>
+                            <div class="font-bold text-white text-lg">${item.title}</div>
+                            <div class="text-[10px] text-indigo-400 font-black tracking-widest uppercase italic">Neural PR ${item.pr}</div>
                         </div>
                     </td>
                     <td class="p-6">
-                        <div class="flex flex-wrap gap-2 max-w-[200px]">
+                        <div class="flex flex-wrap gap-1 max-w-[200px]">
                             ${Object.entries(item.metrics || {}).filter(([k,v]) => v > 0).slice(0, 4).map(([k,v]) => `
                                 <span class="text-[7px] font-black px-2 py-1 rounded bg-white/5 text-slate-500 uppercase">${k}</span>
                             `).join('')}
@@ -275,16 +296,14 @@
                     </td>
                     <td class="p-6 text-center font-black text-3xl italic text-white">${item.votes}</td>
                     <td class="p-6 text-right">
-                        <div class="flex items-center justify-end gap-3">
-                            <button onclick="openShare('${item.id}', '${item.title}', '${item.pr}')" class="text-slate-500 hover:text-white transition-colors p-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 100 6 3 3 0 000-6z"></path></svg></button>
-                            <button onclick="vote('${item.id}')" class="bg-white/5 hover:bg-white text-slate-400 hover:text-black px-6 py-3 rounded-xl text-[10px] font-black uppercase transition-all">Vote</button>
-                        </div>
+                        <button onclick="vote('${item.id}')" class="bg-indigo-600/10 border border-indigo-600/20 hover:bg-white text-indigo-400 hover:text-black px-6 py-3 rounded-xl text-[10px] font-black uppercase transition-all">Vote</button>
                     </td>
                 </tr>`).join('');
         }
 
-        window.openShare = (id, title, pr) => {
-            const badge = `<div style="display:inline-flex; align-items:center; background:#05070a; border:1px solid #312e81; border-radius:12px; padding:12px 20px; font-family:sans-serif; color:white;"><div style="font-weight:900; font-style:italic; margin-right:12px;">pcs365</div><div style="font-size:10px; opacity:0.6; margin-right:8px;">${title}</div><div style="font-weight:900; color:#818cf8;">PR ${pr}</div></div>`;
+        window.openShareFromPreview = () => {
+            if(!window.tempAI) return;
+            const badge = `<div style="display:inline-flex; align-items:center; background:#05070a; border:1px solid #312e81; border-radius:12px; padding:12px 20px; font-family:sans-serif; color:white;"><div style="font-weight:900; font-style:italic; margin-right:12px;">pcs365</div><div style="font-size:10px; opacity:0.6; margin-right:8px;">${window.tempAI.title}</div><div style="font-weight:900; color:#818cf8;">PR ${window.tempAI.pr}</div></div>`;
             document.getElementById('badgePreview').innerHTML = badge;
             document.getElementById('badgeCode').innerText = badge;
             document.getElementById('badgeModal').classList.add('active');
@@ -293,7 +312,7 @@
         window.closeModal = () => document.getElementById('badgeModal').classList.remove('active');
         window.copyBadgeCode = () => {
             navigator.clipboard.writeText(document.getElementById('badgeCode').innerText);
-            alert("Embed code copied to clipboard!");
+            alert("Copied to clipboard!");
         };
 
         loadIndex();
