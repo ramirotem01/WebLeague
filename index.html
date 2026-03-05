@@ -17,6 +17,7 @@
         .btn-gradient { background: linear-gradient(90deg, #4f46e5, #7c3aed); transition: all 0.3s ease; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
         .modal.active { display: flex; }
+        /* Fix for the cut-off X in Index */
         .hero-title { padding-right: 0.15em; }
     </style>
 </head>
@@ -49,7 +50,7 @@
         </h1>
         <p class="text-slate-400 max-w-3xl mx-auto mb-10 text-lg font-medium leading-relaxed">
             Community-driven voting for the best AI tools of the week. <br>
-            Analyzed via Reddit, Hacker News, and GitHub authority signals.
+            Analyzed via Product Hunt, GitHub, and social authority signals (PR).
         </p>
         
         <div class="max-w-2xl mx-auto glass p-2 rounded-2xl flex flex-col md:flex-row gap-2 shadow-2xl mb-4 border-white/10">
@@ -118,70 +119,92 @@
         const db = getFirestore(app);
         let masterData = [];
 
+        async function robustProxyFetch(url) {
+            const proxies = [
+                `https://api.allorigins.win/get?url=${encodeURIComponent(url)}&t=${Date.now()}`,
+                `https://corsproxy.io/?${encodeURIComponent(url)}`
+            ];
+            for (let p of proxies) {
+                try {
+                    const r = await fetch(p, { signal: AbortSignal.timeout(5000) });
+                    const d = await r.json();
+                    return d.contents || d;
+                } catch(e) {}
+            }
+            return null;
+        }
+
         async function getDeepSignals(domain, url) {
             const log = document.getElementById('scanLog');
-            log.innerText = "Scanning Social Authority...";
+            log.innerText = "Analyzing Authority & History...";
             
             const requests = [
-                fetch(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(domain)}&hitsPerPage=5`).then(r => r.json()).catch(() => ({hits:[]})),
+                fetch(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(domain)}&hitsPerPage=3`).then(r => r.json()).catch(() => ({hits:[]})),
+                robustProxyFetch(`https://www.reddit.com/search.json?q=${encodeURIComponent(domain)}&limit=3`),
                 fetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(domain)}&sort=stars`).then(r => r.json()).catch(() => ({items:[]})),
-                // Reddit search via open API
-                fetch(`https://www.reddit.com/search.json?q=${encodeURIComponent(domain)}&limit=5`).then(r => r.json()).catch(() => ({data:{children:[]}}))
+                fetch(`https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&list=search&srsearch=${encodeURIComponent(domain)}`).then(r => r.json()).catch(() => ({query:{search:[]}})),
+                robustProxyFetch(`https://www.producthunt.com/search?q=${encodeURIComponent(domain)}`)
             ];
 
-            const [hn, gh, reddit] = await Promise.all(requests);
-
-            const hCount = hn.hits?.length || 0;
-            const gCount = gh.items?.[0]?.stargazers_count || 0;
-            const rCount = reddit.data?.children?.length || 0;
+            const [hn, reddit, gh, wiki, phRaw] = await Promise.all(requests);
 
             let pr = 1.0; 
-            pr += (hCount * 0.4) + (rCount * 0.3);
-            if(gCount > 0) pr += Math.min(3.5, gCount / 500);
-            if(url.includes('.ai')) pr += 0.5;
+            if(wiki.query?.search?.length > 0) pr += 1.8;
+            if(phRaw && phRaw.includes('producthunt.com/posts')) pr += 1.2;
+
+            const gCount = gh.items?.[0]?.stargazers_count || 0;
+            if(gCount > 10) pr += Math.min(3.0, gCount / 1000); 
+
+            const hCount = hn.hits?.length || 0;
+            const rData = (typeof reddit === 'string' ? JSON.parse(reddit) : reddit);
+            const rCount = rData?.data?.children?.length || 0;
+            
+            pr += (hCount * 0.4) + (rCount * 0.2);
+            if(url.startsWith('https')) pr += 0.2;
+            if(url.includes('.ai')) pr += 0.3;
 
             log.innerText = "Deep Scan Completed.";
             setTimeout(() => log.innerText = "", 2000);
 
-            return { h: hCount, g: gCount, r: rCount, pr: Math.min(9.9, pr).toFixed(1) };
+            return { h: hCount, r: rCount, g: gCount, pr: Math.min(9.9, pr).toFixed(1) };
         }
 
         window.analyzeWebsite = async function() {
             const urlInput = document.getElementById('urlInput');
             let url = urlInput.value.trim();
-            if(!url) return;
             if(!url.startsWith('http')) url = 'https://' + url;
 
-            document.getElementById('btnLabel').innerText = "Analyzing...";
+            document.getElementById('btnLabel').innerText = "Scanning...";
             document.getElementById('btnSpinner').classList.remove('hidden');
 
             try {
-                const response = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`);
-                const result = await response.json();
-                const meta = result.data;
+                const raw = await robustProxyFetch(url);
+                const docParsed = new DOMParser().parseFromString(raw || '', 'text/html');
                 const domainName = url.split('/')[2].replace('www.', '').split('.')[0];
-                
-                const finalTitle = (meta.title || domainName).split('|')[0].split('-')[0].trim();
-                let rawDesc = meta.description || `Leading AI platform for ${finalTitle} solutions.`;
-                const finalDesc = rawDesc.length > 150 ? rawDesc.substring(0, 150).trim() + "..." : rawDesc;
 
-                // הבאת סיגנלים חברתיים (כולל Reddit)
+                const metaTitle = docParsed.querySelector('title')?.innerText || 
+                                 docParsed.querySelector('meta[property="og:title"]')?.content || 
+                                 domainName;
+
+                const metaDesc = docParsed.querySelector('meta[name="description"]')?.content || 
+                                 docParsed.querySelector('meta[property="og:description"]')?.content || 
+                                 docParsed.querySelector('meta[name="twitter:description"]')?.content ||
+                                 docParsed.querySelector('h1')?.innerText;
+
+                const finalTitle = metaTitle.split('|')[0].split('-')[0].trim();
+                const finalDesc = metaDesc ? metaDesc.trim().substring(0, 140) + (metaDesc.length > 140 ? '...' : '') : `Official platform for ${finalTitle} AI tools.`;
+
                 const s = await getDeepSignals(domainName, url);
                 
                 window.tempAI = { 
-                    url, 
-                    title: finalTitle, 
-                    description: finalDesc, 
-                    pr: s.pr, 
-                    icon: meta.logo?.url || meta.image?.url || `https://www.google.com/s2/favicons?sz=128&domain=${url}`, 
-                    votes: 1, 
-                    metrics: { reddit: s.r, hn: s.h, github: s.g } 
+                    url, title: finalTitle, description: finalDesc, pr: s.pr, 
+                    icon: `https://www.google.com/s2/favicons?sz=128&domain=${url}`, 
+                    votes: 1, metrics: { reddit: s.r, hn: s.h, github: s.g } 
                 };
 
                 updatePreview(window.tempAI);
-            } catch (e) { 
-                alert("Extraction failed. Try another URL."); 
-            } finally { 
+            } catch (e) { alert("Could not fetch metadata. Please check the URL."); }
+            finally { 
                 document.getElementById('btnLabel').innerText = "Analyze & List";
                 document.getElementById('btnSpinner').classList.add('hidden');
             }
@@ -195,6 +218,7 @@
             document.getElementById('sitePR').className = `px-4 py-1 rounded-full font-black text-sm ${getPRClass(data.pr)}`;
             document.getElementById('metricsVisual').innerHTML = `
                 <div class="bg-orange-500/10 text-orange-400 text-[10px] font-bold px-3 py-1 rounded-lg border border-orange-500/20">Reddit: ${data.metrics.reddit}</div>
+                <div class="bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-3 py-1 rounded-lg border border-emerald-500/20">HackerN: ${data.metrics.hn}</div>
                 <div class="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-3 py-1 rounded-lg border border-blue-500/20">GitHub: ${data.metrics.github}</div>
             `;
             document.getElementById('previewCard').classList.remove('hidden');
@@ -263,7 +287,7 @@
                                         <div class="font-bold text-white text-lg tracking-tight">${item.title}</div>
                                         <span class="text-[10px] font-black ${getPRClass(item.pr)} px-2 py-0.5 rounded-md">PR ${item.pr || '1.0'}</span>
                                     </div>
-                                    <div class="text-[11px] text-slate-500 truncate max-w-[200px] italic">${item.description}</div>
+                                    <div class="text-[11px] text-slate-400 truncate max-w-[200px] italic">${item.description}</div>
                                 </div>
                             </div>
                         </td>
