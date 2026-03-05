@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>pcs365 | Weekly AI Leaderboard</title>
+    <title>pcs365 | Pure AI Index</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     
@@ -25,55 +25,52 @@
     <nav class="p-6 border-b border-white/5 bg-black/20 sticky top-0 z-50 backdrop-blur-md">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-extrabold text-white shadow-lg">AI</div>
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-extrabold text-white">AI</div>
                 <span class="text-xl font-extrabold tracking-tight uppercase">pcs365</span>
             </div>
-            <div class="bg-indigo-500/10 border border-indigo-500/20 px-4 py-2 rounded-full font-bold text-indigo-300 text-[10px] tracking-widest uppercase">
-                Votes Left: <span id="votesLeft" class="text-white text-xs">3</span>
+            <div id="votesLeft" class="bg-indigo-500/10 border border-indigo-500/20 px-4 py-2 rounded-full font-bold text-indigo-300 text-[10px] tracking-widest uppercase">
+                Votes Left: <span id="vCount" class="text-white">3</span>
             </div>
         </div>
     </nav>
 
-    <header class="pt-20 pb-10 text-center px-4">
-        <h1 class="text-6xl md:text-7xl font-extrabold tracking-tighter mb-6 italic uppercase">Global <span class="accent-text">AI Index</span></h1>
+    <header class="pt-16 pb-10 text-center px-4">
+        <h1 class="text-5xl md:text-7xl font-extrabold tracking-tighter mb-4 italic uppercase italic">Public <span class="accent-text">AI Intelligence</span></h1>
+        <p class="text-slate-500 mb-8 max-w-xl mx-auto text-sm font-medium uppercase tracking-[0.2em]">Open API Ranking Logic</p>
+        
         <div class="max-w-2xl mx-auto glass p-2 rounded-2xl flex flex-col md:flex-row gap-2 shadow-2xl mb-8 border-white/10">
-            <input type="url" id="urlInput" placeholder="Paste AI tool URL (e.g. v0.dev)" class="flex-1 bg-transparent p-4 outline-none text-white font-medium">
+            <input type="url" id="urlInput" placeholder="Enter AI Tool URL (e.g. v0.dev)" class="flex-1 bg-transparent p-4 outline-none text-white font-medium">
             <button onclick="analyzeWebsite()" id="mainBtn" class="btn-gradient px-10 py-4 rounded-xl font-bold flex items-center justify-center gap-3 active:scale-95 transition-all">
-                <span>Analyze Signals</span>
+                <span>Scan Signals</span>
                 <div id="btnSpinner" class="loader hidden"></div>
             </button>
-        </div>
-        <div class="max-w-md mx-auto">
-            <input type="text" id="searchInput" oninput="filterTable()" placeholder="Search leaderboard..." class="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none text-sm">
         </div>
     </header>
 
     <main class="max-w-6xl mx-auto px-4 pb-32">
         <div id="previewCard" class="hidden mb-12">
-            <div class="glass rounded-[2rem] p-1 border-indigo-500/30 bg-gradient-to-b from-indigo-500/10 to-transparent">
-                <div class="p-8 rounded-[1.9rem] bg-[#05070a]/90">
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                        <div class="flex flex-col items-center lg:items-start gap-4 text-center lg:text-left">
-                            <img id="siteIcon" src="" class="w-24 h-24 rounded-3xl shadow-2xl border border-white/10 p-2 bg-black">
-                            <div>
-                                <h2 id="siteTitle" class="text-4xl font-black text-white tracking-tighter mb-2 italic"></h2>
-                                <p id="siteDesc" class="text-slate-400 text-sm italic leading-relaxed"></p>
-                            </div>
+            <div class="glass rounded-[2.5rem] p-8 border-indigo-500/20">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <div class="lg:col-span-3 flex flex-col items-center lg:items-start text-center lg:text-left gap-4">
+                        <img id="siteIcon" src="" class="w-20 h-20 rounded-2xl shadow-xl bg-black border border-white/10 p-2">
+                        <div>
+                            <h2 id="siteTitle" class="text-2xl font-black text-white italic truncate w-full"></h2>
+                            <p id="siteDesc" class="text-slate-500 text-xs italic line-clamp-3"></p>
                         </div>
+                    </div>
 
-                        <div class="flex flex-col gap-4">
-                            <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">Live API Analysis</h4>
-                            <div id="signalGrid" class="grid grid-cols-2 gap-3"></div>
-                        </div>
+                    <div class="lg:col-span-6 border-x border-white/5 px-4">
+                        <h4 class="text-[9px] font-black uppercase tracking-widest text-indigo-400 mb-4 italic">Public Signal Mesh</h4>
+                        <div id="signalGrid" class="grid grid-cols-3 gap-2 text-[8px]"></div>
+                    </div>
 
-                        <div class="flex flex-col items-center justify-center bg-white/5 rounded-3xl p-6 border border-white/5">
-                            <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Neural PR Score</span>
-                            <div id="sitePR" class="text-6xl font-black italic tracking-tighter mb-4">0.0</div>
-                            <div class="w-full bg-white/10 h-1.5 rounded-full mb-8 overflow-hidden">
-                                <div id="prProgress" class="progress-ring h-full bg-gradient-to-r from-orange-500 via-indigo-500 to-purple-500" style="width: 0%"></div>
-                            </div>
-                            <button id="confirmBtn" onclick="confirmSubmission()" class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase tracking-widest hover:scale-[1.02] transition-transform disabled:opacity-30 disabled:pointer-events-none">Processing...</button>
+                    <div class="lg:col-span-3 flex flex-col items-center justify-center text-center">
+                        <div class="text-[10px] font-bold text-slate-500 uppercase mb-2">Neural PR</div>
+                        <div id="sitePR" class="text-6xl font-black italic tracking-tighter text-white mb-4">0.0</div>
+                        <div class="w-full bg-white/5 h-1.5 rounded-full mb-6 overflow-hidden">
+                            <div id="prProgress" class="progress-ring h-full bg-gradient-to-r from-orange-500 to-indigo-500" style="width: 0%"></div>
                         </div>
+                        <button id="confirmBtn" onclick="confirmSubmission()" class="w-full bg-white text-black py-4 rounded-xl font-black uppercase text-[10px] tracking-widest disabled:opacity-20 transition-all">Analyzing APIs...</button>
                     </div>
                 </div>
             </div>
@@ -82,23 +79,22 @@
         <div class="glass rounded-3xl overflow-hidden border border-white/5">
             <table class="w-full text-left">
                 <thead>
-                    <tr class="text-[10px] uppercase tracking-widest text-slate-500 border-b border-white/5 bg-white/[0.02]">
+                    <tr class="text-[10px] uppercase tracking-widest text-slate-500 border-b border-white/5 bg-white/[0.01]">
                         <th class="p-6">Rank</th>
                         <th class="p-6">Application</th>
-                        <th class="p-6">Source Signals</th>
+                        <th class="p-6">Active Signals</th>
                         <th class="p-6 text-center">Votes</th>
                         <th class="p-6"></th>
                     </tr>
                 </thead>
                 <tbody id="leaderboardBody" class="divide-y divide-white/5"></tbody>
             </table>
-            <div id="loaderText" class="p-20 text-center text-slate-600 text-xs font-bold uppercase tracking-widest animate-pulse">Syncing Leaderboard...</div>
         </div>
     </main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, limit, doc, updateDoc, increment, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, limit, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBs8x4SVn65rzWrQJxbwxpOj2XvoNFMhBI",
@@ -113,57 +109,65 @@
         const db = getFirestore(app);
         let masterData = [];
 
+        // רשימת מקורות פתוחים ללא צורך במפתח אישי
         const SOURCES = [
             { id: 'gh', name: 'GitHub Stars', color: 'blue' },
-            { id: 'rd', name: 'Reddit Buzz', color: 'orange' },
             { id: 'hn', name: 'HackerNews', color: 'emerald' },
-            { id: 'ph', name: 'ProductHunt', color: 'red' },
-            { id: 'wk', name: 'Wikipedia', color: 'slate' }
+            { id: 'rd', name: 'Reddit', color: 'orange' },
+            { id: 'so', name: 'StackOverflow', color: 'yellow' },
+            { id: 'npm', name: 'NPM Registry', color: 'red' },
+            { id: 'pypi', name: 'PyPI Python', color: 'blue' },
+            { id: 'wk', name: 'Wikipedia', color: 'slate' },
+            { id: 'gl', name: 'GitLab Projects', color: 'orange' },
+            { id: 'ddg', name: 'DuckDuckGo', color: 'indigo' },
+            { id: 'ph', name: 'ProductHunt', color: 'red' }
         ];
 
         window.analyzeWebsite = async function() {
-            let urlInput = document.getElementById('urlInput').value.trim();
-            if(!urlInput) return;
-            if(!urlInput.startsWith('http')) urlInput = 'https://' + urlInput;
+            let rawUrl = document.getElementById('urlInput').value.trim();
+            if(!rawUrl) return;
+            if(!rawUrl.startsWith('http')) rawUrl = 'https://' + rawUrl;
             
-            // Normalize URL to domain for unique key
-            const urlObj = new URL(urlInput);
-            const domain = urlObj.hostname.replace('www.', '');
-            const cleanUrl = `https://${domain}`; 
+            const domain = new URL(rawUrl).hostname.replace('www.', '');
+            const name = domain.split('.')[0];
 
             document.getElementById('previewCard').classList.remove('hidden');
             document.getElementById('btnSpinner').classList.remove('hidden');
             initSignalGrid();
 
-            // Meta Fetch
-            const metaRes = await fetch(`https://api.microlink.io?url=${encodeURIComponent(cleanUrl)}`);
-            const metaData = await metaRes.json();
+            // Meta (Public API)
+            const metaRes = await fetch(`https://api.microlink.io?url=${encodeURIComponent(rawUrl)}`);
+            const meta = await metaRes.json();
             
             window.tempAI = { 
-                url: cleanUrl, 
-                title: metaData.data?.title || domain, 
-                description: metaData.data?.description || "Analyzing AI impact...", 
-                icon: metaData.data?.logo?.url || `https://logo.clearbit.com/${domain}`,
-                votes: 1, pr: 1.0, 
-                metrics: { gh: 0, rd: 0, hn: 0, ph: 0, wk: 0 } 
+                url: `https://${domain}`, title: meta.data?.title || domain, 
+                description: meta.data?.description || "Analyzing social presence...",
+                icon: meta.data?.logo?.url || `https://logo.clearbit.com/${domain}`,
+                votes: 1, pr: 1.0, metrics: {} 
             };
             updatePreviewUI();
 
-            const fetchers = [
-                { id: 'gh', fetch: () => fetch(`https://api.github.com/search/repositories?q=${domain}&sort=stars`).then(r=>r.json()).then(d=>d.items?.[0]?.stargazers_count || 0) },
-                { id: 'rd', fetch: () => fetch(`https://www.reddit.com/search.json?q=${domain}&limit=10`).then(r=>r.json()).then(d=>d.data?.children?.length || 0) },
-                { id: 'hn', fetch: () => fetch(`https://hn.algolia.com/api/v1/search?query=${domain}`).then(r=>r.json()).then(d=>d.hits?.length || 0) },
-                { id: 'ph', fetch: () => fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://www.producthunt.com/search?q='+domain)}`).then(r=>r.json()).then(d=>d.contents.includes('posts') ? 1 : 0) },
-                { id: 'wk', fetch: () => fetch(`https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&list=search&srsearch=${domain}`).then(r=>r.json()).then(d=>d.query?.search?.length > 0 ? 1 : 0) }
+            // סריקת מקורות פתוחים בלבד
+            const tasks = [
+                { id: 'gh', fetch: () => fetch(`https://api.github.com/search/repositories?q=${name}&sort=stars`).then(r=>r.json()).then(d=>d.items?.[0]?.stargazers_count || 0) },
+                { id: 'hn', fetch: () => fetch(`https://hn.algolia.com/api/v1/search?query=${name}`).then(r=>r.json()).then(d=>d.hits?.length || 0) },
+                { id: 'rd', fetch: () => fetch(`https://www.reddit.com/search.json?q=${name}&limit=10`).then(r=>r.json()).then(d=>d.data?.children?.length || 0) },
+                { id: 'so', fetch: () => fetch(`https://api.stackexchange.com/2.3/search/advanced?q=${name}&site=stackoverflow`).then(r=>r.json()).then(d=>d.items?.length || 0) },
+                { id: 'npm', fetch: () => fetch(`https://registry.npmjs.org/-/v1/search?text=${name}`).then(r=>r.json()).then(d=>d.total || 0) },
+                { id: 'pypi', fetch: () => fetch(`https://pypi.org/pypi/${name}/json`).then(r=>r.ok ? 1 : 0) },
+                { id: 'wk', fetch: () => fetch(`https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&list=search&srsearch=${name}`).then(r=>r.json()).then(d=>d.query?.search?.length || 0) },
+                { id: 'gl', fetch: () => fetch(`https://gitlab.com/api/v4/projects?search=${name}`).then(r=>r.json()).then(d=>d.length || 0) },
+                { id: 'ddg', fetch: () => fetch(`https://api.duckduckgo.com/?q=${name}&format=json`).then(r=>r.json()).then(d=>d.AbstractText ? 1 : 0) },
+                { id: 'ph', fetch: () => fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://www.producthunt.com/search?q='+name)}`).then(r=>r.json()).then(d=>d.contents.includes('posts') ? 1 : 0) }
             ];
 
-            await Promise.allSettled(fetchers.map(async (f) => {
+            await Promise.allSettled(tasks.map(async (t) => {
                 try {
-                    const val = await f.fetch();
-                    window.tempAI.metrics[f.id] = val;
-                    markSignalComplete(f.id, val);
+                    const val = await t.fetch();
+                    window.tempAI.metrics[t.id] = val;
+                    markSignalComplete(t.id, val);
                     calculatePR();
-                } catch(e) { markSignalComplete(f.id, 0); }
+                } catch(e) { markSignalComplete(t.id, 0); }
             }));
 
             document.getElementById('btnSpinner').classList.add('hidden');
@@ -173,26 +177,30 @@
 
         function initSignalGrid() {
             document.getElementById('signalGrid').innerHTML = SOURCES.map(s => `
-                <div id="sig-${s.id}" class="bg-white/5 border border-white/5 p-3 rounded-2xl flex flex-col gap-1">
-                    <span class="text-[9px] uppercase font-bold text-slate-500">${s.name}</span>
-                    <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-slate-700 pulse-scan"></div><span class="text-xs font-black text-slate-600 italic">Scanning</span></div>
+                <div id="sig-${s.id}" class="bg-white/5 border border-white/5 p-2 rounded-xl flex flex-col gap-1">
+                    <span class="text-slate-500 font-bold">${s.name}</span>
+                    <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-slate-700 pulse-scan"></div><span class="text-[7px] italic text-slate-600">Syncing</span></div>
                 </div>`).join('');
         }
 
         function markSignalComplete(id, val) {
             const s = SOURCES.find(x => x.id === id);
             const el = document.getElementById(`sig-${id}`);
-            el.className = `bg-${s.color}-500/10 border border-${s.color}-500/20 p-3 rounded-2xl flex flex-col gap-1 transition-all`;
-            el.innerHTML = `<span class="text-[9px] uppercase font-bold text-${s.color}-400">${s.name}</span>
-                            <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-${s.color}-500 shadow-[0_0_8px_${s.color}55]"></div>
-                            <span class="text-xs font-black text-white">${val > 1000 ? (val/1000).toFixed(1)+'k' : val}</span></div>`;
+            if(!el) return;
+            el.className = `bg-${s.color}-500/10 border border-${s.color}-500/20 p-2 rounded-xl flex flex-col transition-all`;
+            el.innerHTML = `<span class="text-${s.color}-400 font-bold">${s.name}</span>
+                            <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-${s.color}-500"></div><span class="text-white font-black">${val}</span></div>`;
         }
 
         function calculatePR() {
             let pr = 1.0;
             const m = window.tempAI.metrics;
-            if(m.gh > 0) pr += Math.min(3.5, Math.log10(m.gh + 1));
-            pr += (m.rd * 0.2) + (m.hn * 0.4) + (m.ph * 1.5) + (m.wk * 1.0);
+            if(m.gh > 0) pr += Math.min(3.0, Math.log10(m.gh + 1));
+            if(m.npm > 0 || m.pypi > 0) pr += 1.5;
+            if(m.so > 0) pr += Math.min(1.5, m.so * 0.1);
+            if(m.wk > 0) pr += 1.0;
+            pr += (m.hn || 0) * 0.3 + (m.rd || 0) * 0.1 + (m.ph || 0) * 1.0;
+            
             window.tempAI.pr = Math.min(9.9, pr).toFixed(1);
             updatePreviewUI();
         }
@@ -205,38 +213,22 @@
             document.getElementById('prProgress').style.width = `${(window.tempAI.pr / 10) * 100}%`;
         }
 
-        // המנגנון המתוקן למניעת כפילויות
         window.confirmSubmission = async function() {
-            const btn = document.getElementById('confirmBtn');
-            btn.disabled = true;
-            btn.innerText = "Saving...";
-
-            try {
-                const q = query(collection(db, "league_sites"), where("url", "==", window.tempAI.url));
-                const snap = await getDocs(q);
-
-                if (!snap.empty) {
-                    // עדכון אתר קיים
-                    const docId = snap.docs[0].id;
-                    await updateDoc(doc(db, "league_sites", docId), {
-                        metrics: window.tempAI.metrics,
-                        pr: window.tempAI.pr,
-                        description: window.tempAI.description,
-                        title: window.tempAI.title
-                    });
-                    console.log("Updated existing entry.");
-                } else {
-                    // הוספת אתר חדש
-                    await addDoc(collection(db, "league_sites"), window.tempAI);
-                    console.log("Added new entry.");
-                }
-
-                document.getElementById('previewCard').classList.add('hidden');
-                document.getElementById('urlInput').value = '';
-                loadIndex();
-            } catch (e) {
-                console.error("Error saving:", e);
+            const q = query(collection(db, "league_sites"), where("url", "==", window.tempAI.url));
+            const snap = await getDocs(q);
+            if (!snap.empty) {
+                await updateDoc(doc(db, "league_sites", snap.docs[0].id), { 
+                    metrics: window.tempAI.metrics, 
+                    pr: window.tempAI.pr,
+                    title: window.tempAI.title,
+                    description: window.tempAI.description
+                });
+            } else {
+                await addDoc(collection(db, "league_sites"), window.tempAI);
             }
+            document.getElementById('previewCard').classList.add('hidden');
+            document.getElementById('urlInput').value = '';
+            loadIndex();
         };
 
         window.vote = async function(id) {
@@ -253,43 +245,37 @@
             const snap = await getDocs(q);
             masterData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             renderTable(masterData);
-            document.getElementById('loaderText').classList.add('hidden');
             const key = `v_log_${new Date().getFullYear()}-W${Math.ceil(new Date().getDate()/7)}`;
-            document.getElementById('votesLeft').innerText = 3 - JSON.parse(localStorage.getItem(key) || '[]').length;
+            document.getElementById('vCount').innerText = 3 - JSON.parse(localStorage.getItem(key) || '[]').length;
         };
 
         function renderTable(data) {
             const tbody = document.getElementById('leaderboardBody');
             tbody.innerHTML = data.map((item, i) => `
                 <tr class="hover:bg-white/[0.02] transition-colors">
-                    <td class="p-6 font-black text-2xl opacity-40 italic">${i + 1}</td>
+                    <td class="p-6 font-black text-2xl opacity-10 italic">${i + 1}</td>
                     <td class="p-6">
                         <div class="flex items-center gap-4">
-                            <img src="${item.icon}" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 p-1">
+                            <img src="${item.icon}" class="w-10 h-10 rounded-xl bg-white/5 p-1 border border-white/10">
                             <div>
-                                <div class="font-bold text-white">${item.title}</div>
-                                <div class="text-[9px] text-indigo-400 font-black tracking-widest uppercase">PR ${item.pr}</div>
+                                <div class="font-bold text-white tracking-tight">${item.title}</div>
+                                <div class="text-[9px] text-indigo-400 font-black tracking-widest">PR ${item.pr}</div>
                             </div>
                         </div>
                     </td>
                     <td class="p-6">
-                        <div class="flex gap-2">
-                            ${Object.entries(item.metrics || {}).filter(([k,v]) => v > 0).map(([k,v]) => `
-                                <span class="text-[8px] font-bold px-2 py-0.5 rounded-md bg-white/5 text-slate-400 border border-white/5">${k.toUpperCase()}:${v}</span>
+                        <div class="flex flex-wrap gap-1 max-w-xs">
+                            ${Object.entries(item.metrics || {}).filter(([k,v]) => v > 0).slice(0, 5).map(([k,v]) => `
+                                <span class="text-[7px] font-bold px-1.5 py-0.5 rounded bg-white/5 text-slate-500 uppercase border border-white/5">${k}</span>
                             `).join('')}
                         </div>
                     </td>
                     <td class="p-6 text-center font-black text-2xl italic tracking-tighter">${item.votes}</td>
                     <td class="p-6 text-right">
-                        <button onclick="vote('${item.id}')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase transition-all active:scale-95">Vote</button>
+                        <button onclick="vote('${item.id}')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-xl text-[9px] font-black uppercase transition-all active:scale-95">Vote</button>
                     </td>
                 </tr>`).join('');
         }
-
-        window.filterTable = () => {
-            const term = document.getElementById('searchInput').value.toLowerCase();
-            renderTable(masterData.filter(s => s.title.toLowerCase().includes(term) || s.url.includes(term)));
-        };
 
         loadIndex();
     </script>
