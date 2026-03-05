@@ -45,12 +45,12 @@
     <header class="pt-20 pb-10 text-center px-4">
         <h1 class="text-6xl md:text-7xl font-extrabold tracking-tighter mb-6 italic uppercase">Global <span class="accent-text">AI Index</span></h1>
         <p class="text-slate-400 max-w-3xl mx-auto mb-10 text-lg font-medium leading-relaxed">
-            הדירוג הקהילתי לכלי ה-AI הטובים ביותר השבוע. <br>
-            המערכת מנתחת נתוני אמת מ-Product Hunt, GitHub וסיגנלים חברתיים כדי לקבוע את רמת הסמכות (PR) של כל כלי.
+            Community-driven voting for the best AI tools of the week. <br>
+            Analyzed via Product Hunt, GitHub, and social authority signals (PR).
         </p>
         
         <div class="max-w-2xl mx-auto glass p-2 rounded-2xl flex flex-col md:flex-row gap-2 shadow-2xl mb-4 border-white/10">
-            <input type="url" id="urlInput" placeholder="הדבק כאן כתובת של כלי AI לניתוח..." class="flex-1 bg-transparent p-4 outline-none text-white font-medium placeholder:text-slate-600 text-right" dir="rtl">
+            <input type="url" id="urlInput" placeholder="Paste AI tool URL (e.g., https://perplexity.ai)" class="flex-1 bg-transparent p-4 outline-none text-white font-medium placeholder:text-slate-600">
             <button onclick="analyzeWebsite()" id="mainBtn" class="btn-gradient px-10 py-4 rounded-xl font-bold flex items-center justify-center gap-3 active:scale-95 transition-all">
                 <span id="btnLabel">Analyze & List</span>
                 <div id="btnSpinner" class="loader hidden"></div>
@@ -59,7 +59,7 @@
         <div id="scanLog" class="text-[9px] font-bold text-slate-600 uppercase tracking-[0.3em] mb-8 h-4"></div>
 
         <div class="max-w-md mx-auto">
-            <input type="text" id="searchInput" oninput="filterTable()" placeholder="חיפוש מהיר באינדקס..." class="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none focus:border-indigo-500 text-sm text-center">
+            <input type="text" id="searchInput" oninput="filterTable()" placeholder="Search leaderboard..." class="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none focus:border-indigo-500 text-sm">
         </div>
     </header>
 
@@ -134,7 +134,7 @@
             const domain = url.split('/')[2].replace('www.', '').split('.')[0];
             const log = document.getElementById('scanLog');
             
-            log.innerText = "Analyzing Authority & Network Depth...";
+            log.innerText = "Analyzing Authority & History...";
             
             const requests = [
                 fetch(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(domain)}&hitsPerPage=3`).then(r => r.json()).catch(() => ({hits:[]})),
@@ -146,27 +146,21 @@
 
             const [hn, reddit, gh, wiki, phRaw] = await Promise.all(requests);
 
-            // STRICT CALCULATION LOGIC
-            let pr = 1.0; // Base PR starting low
+            // STRICT CALCULATION (Weighted PR)
+            let pr = 1.0; 
             
-            // 1. Wikipedia (Extreme Authority)
             if(wiki.query?.search?.length > 0) pr += 1.8;
-
-            // 2. Product Hunt (Launch Signal)
             if(phRaw && phRaw.includes('producthunt.com/posts')) pr += 1.2;
 
-            // 3. GitHub (Dev Traction)
             const gCount = gh.items?.[0]?.stargazers_count || 0;
             if(gCount > 10) pr += Math.min(3.0, gCount / 1000); 
 
-            // 4. Social Mention Density
             const hCount = hn.hits?.length || 0;
             const rData = (typeof reddit === 'string' ? JSON.parse(reddit) : reddit);
             const rCount = rData?.data?.children?.length || 0;
             
             pr += (hCount * 0.4) + (rCount * 0.2);
 
-            // 5. Security & Domain TLD
             if(url.startsWith('https')) pr += 0.2;
             if(url.includes('.ai') || url.includes('.io')) pr += 0.3;
 
@@ -179,7 +173,7 @@
         window.analyzeWebsite = async function() {
             const urlInput = document.getElementById('urlInput');
             const url = urlInput.value.trim();
-            if(!url.startsWith('http')) return alert("Please enter a valid URL");
+            if(!url.startsWith('http')) return alert("Enter valid URL");
 
             document.getElementById('btnLabel').innerText = "Analyzing...";
             document.getElementById('btnSpinner').classList.remove('hidden');
@@ -204,7 +198,7 @@
                 };
 
                 updatePreview(window.tempAI);
-            } catch (e) { alert("Analysis failed. Network error."); }
+            } catch (e) { alert("Analysis failed."); }
             finally { 
                 document.getElementById('btnLabel').innerText = "Analyze & List";
                 document.getElementById('btnSpinner').classList.add('hidden');
