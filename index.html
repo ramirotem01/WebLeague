@@ -145,31 +145,110 @@
         ];
 
         window.analyzeWebsite = async function() {
-            let urlInput = document.getElementById('urlInput').value.trim();
-            if(!urlInput) return;
-            if(!urlInput.startsWith('http')) urlInput = 'https://' + urlInput;
-            const domain = new URL(urlInput).hostname.replace('www.', '');
-            const name = domain.split('.')[0];
+    let urlInput = document.getElementById('urlInput').value.trim();
+    if(!urlInput) return;
+    
+    // ניקוי והכנת ה-URL והדומיין
+    if(!urlInput.startsWith('http')) urlInput = 'https://' + urlInput;
+    const domain = new URL(urlInput).hostname.replace('www.', '');
+    const name = domain.split('.')[0];
 
-            document.getElementById('previewCard').classList.remove('hidden');
-            document.getElementById('btnSpinner').classList.remove('hidden');
-            document.getElementById('statusMsg').classList.add('hidden');
-            
-            const confirmBtn = document.getElementById('confirmBtn');
-            confirmBtn.classList.add('btn-loading');
-            confirmBtn.innerText = "Syncing Data...";
+    // הכנת ה-UI לתהליך הסריקה
+    document.getElementById('previewCard').classList.remove('hidden');
+    document.getElementById('btnSpinner').classList.remove('hidden');
+    document.getElementById('statusMsg').classList.add('hidden');
+    
+    const confirmBtn = document.getElementById('confirmBtn');
+    confirmBtn.classList.add('btn-loading');
+    confirmBtn.innerText = "Analyzing Neural Signals...";
 
-            initSignalGrid();
+    initSignalGrid(); // מאפס את הגריד לסימני טעינה
 
-            const metaRes = await fetch(`https://api.microlink.io?url=${encodeURIComponent(urlInput)}`);
-            const meta = await metaRes.json();
-            
-            window.tempAI = { 
-                url: `https://${domain}`, title: meta.data?.title || domain, 
-                description: meta.data?.description || "Awaiting signals...",
-                icon: meta.data?.logo?.url || `https://logo.clearbit.com/${domain}`,
-                votes: 1, pr: 1.0, metrics: {} 
-            };
+    try {
+        // 1. חילוץ מטא-דאטה משופר (Microlink + Fallbacks)
+        const metaRes = await fetch(`https://api.microlink.io?url=${encodeURIComponent(urlInput)}`);
+        const meta = await metaRes.json();
+        const data = meta.data || {};
+
+        // לוגיקת תיאור חכמה - מונעת שורות ריקות או שיבושים
+        let finalDesc = data.description || 
+                        data.og?.description || 
+                        data.twitter?.description || 
+                        `Advanced AI analysis for ${domain}. Monitoring neural signals and global developer adoption.`;
+        
+        // ניקוי אורך התיאור לטבלה
+        finalDesc = finalDesc.length > 140 ? finalDesc.substring(0, 137) + "..." : finalDesc;
+
+        window.tempAI = { 
+            url: `https://${domain}`, 
+            title: data.title || (name.charAt(0).toUpperCase() + name.slice(1)), 
+            description: finalDesc,
+            icon: data.logo?.url || data.image?.url || `https://logo.clearbit.com/${domain}`,
+            votes: 1, 
+            pr: 1.0, 
+            metrics: {} 
+        };
+
+        updatePreviewUI();
+
+        // 2. הרצת סריקת API לכל המקורות (Parallel Fetching)
+        const tasks = [
+            { id: 'gh', fetch: () => fetch(`https://api.github.com/search/repositories?q=${name}&sort=stars`).then(r=>r.json()).then(d=>d.items?.[0]?.stargazers_count || 0) },
+            { id: 'hn', fetch: () => fetch(`https://hn.algolia.com/api/v1/search?query=${name}`).then(r=>r.json()).then(d=>d.hits?.length || 0) },
+            { id: 'rd', fetch: () => fetch(`https://www.reddit.com/search.json?q=${name}&limit=10`).then(r=>r.json()).then(d=>d.data?.children?.length || 0) },
+            { id: 'so', fetch: () => fetch(`https://api.stackexchange.com/2.3/search/advanced?q=${name}&site=stackoverflow`).then(r=>r.json()).then(d=>d.items?.length || 0) },
+            { id: 'npm', fetch: () => fetch(`https://registry.npmjs.org/-/v1/search?text=${name}`).then(r=>r.json()).then(d=>d.total || 0) },
+            { id: 'pypi', fetch: () => fetch(`https://pypi.org/pypi/${name}/json`).then(r=>r.ok ? 1 : 0) },
+            { id: 'wk', fetch: () => fetch(`https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&list=search&srsearch=${name}`).then(r=>r.json()).then(d=>d.query?.search?.length || 0) },
+            { id: 'gl', fetch: () => fetch(`https://gitlab.com/api/v4/projects?search=${name}`).then(r=>r.json()).then(d=>d.length || 0) },
+            { id: 'ph', fetch: () => fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://www.producthunt.com/search?q='+name)}`).then(r=>r.json()).then(d=>d.contents.includes('posts') ? 1 : 0) }
+        ];
+
+        await Promise.allSettled(tasks.map(async (t) => {
+            try {
+                const val = await t.fetch();
+                window.tempAI.metrics[t.id] = val;
+                markSignalComplete(t.id, val);
+                
+                // עדכון PR בזמן אמת תוך כדי טעינה
+                const m = window.tempAI.metrics;
+                let score = 1.0;
+                if (m.gh > 0) score += Math.log10(m.gh + 1) * 1.5;
+                const devS = (m.npm || 0) + (m.pypi || 0) + (m.so || 0);
+                if (devS > 0) score += Math.log10(devS + 1) * 1.2;
+                const socS = (m.hn || 0) + (m.rd || 0) + (m.ph || 0);
+                if (socS > 0) score += Math.log10(socS + 1) * 0.8;
+                if (m.wk > 0) score += 1.0;
+                
+                window.tempAI.pr = Math.min(9.9, score).toFixed(1);
+                updatePreviewUI();
+            } catch(e) { markSignalComplete(t.id, 0); }
+        }));
+
+        // 3. בדיקה אם קיים ב-Database והצגת הודעת סטטוס מעוצבת
+        const q = query(collection(db, "league_sites"), where("url", "==", window.tempAI.url));
+        const snap = await getDocs(q);
+        const statusEl = document.getElementById('statusMsg');
+        statusEl.classList.remove('hidden');
+        
+        if(!snap.empty) {
+            statusEl.innerText = "System Synced: Entry exists. Updating signals.";
+            statusEl.className = "mt-4 text-[10px] font-black uppercase tracking-widest text-indigo-400 italic animate-pulse";
+            confirmBtn.innerText = "Sync & Update Index";
+        } else {
+            statusEl.innerText = "New Platform Detected: Ready for indexing.";
+            statusEl.className = "mt-4 text-[10px] font-black uppercase tracking-widest text-emerald-400 italic";
+            confirmBtn.innerText = "Add To Global Index";
+        }
+
+    } catch (err) {
+        console.error("Analysis Error:", err);
+        alert("Could not analyze URL. Please check your connection.");
+    } finally {
+        confirmBtn.classList.remove('btn-loading');
+        document.getElementById('btnSpinner').classList.add('hidden');
+    }
+};
             updatePreviewUI();
 
             const tasks = [
