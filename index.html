@@ -149,52 +149,129 @@
             return null;
         }
 
-        async function getDeepSignals(domain, url) {
-            const log = document.getElementById('scanLog');
-            log.innerText = "Gathering social signals (Reddit, GitHub, HN, DDG)...";
-            
-            // שיפור 2: שימוש ב-allSettled כדי לא להיכשל אם מקור אחד נופל
-            const requests = [
-                fetch(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(domain)}&hitsPerPage=5`).then(r => r.json()),
-                fetch(`https://www.reddit.com/search.json?q=${encodeURIComponent(domain)}&limit=5`).then(r => r.json()),
-                fetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(domain)}&sort=stars`).then(r => r.json()),
-                fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(domain)}&format=json`).then(r => r.json()), // מקור נוסף ל-PR
-                fetch(`https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&list=search&srsearch=${encodeURIComponent(domain)}`).then(r => r.json())
-            ];
+       async function getDeepSignals(domain, url) {
 
-            const results = await Promise.allSettled(requests);
-            
-            // חילוץ נתונים בטוח
-            const hn = results[0].status === 'fulfilled' ? results[0].value : {hits: []};
-            const reddit = results[1].status === 'fulfilled' ? results[1].value : {data: {children: []}};
-            const gh = results[2].status === 'fulfilled' ? results[2].value : {items: []};
-            const ddg = results[3].status === 'fulfilled' ? results[3].value : {};
-            const wiki = results[4].status === 'fulfilled' ? results[4].value : {query: {search: []}};
+    const log = document.getElementById('scanLog');
 
-            let pr = 1.0;
-            if (wiki.query?.search?.length > 0) pr += 2.0;
-            if (ddg.AbstractText) pr += 1.5; // ציון גבוה יותר אם יש ערך ב-DDG
-            
-            const gCount = gh.items?.[0]?.stargazers_count || 0;
-            if (gCount > 0) pr += Math.min(3.5, Math.log10(gCount + 1));
+    const cleanDomain = domain.replace(".com","");
 
-            const hCount = hn.hits?.length || 0;
-            const rCount = reddit.data?.children?.length || 0;
-            
-            pr += (hCount * 0.5) + (rCount * 0.3);
-            if (url.includes('.ai')) pr += 0.5;
+    let metrics = {
+        hn:0,
+        reddit:0,
+        github:0,
+        wiki:0,
+        ddg:0,
+        stack:0,
+        npm:0,
+        ph:0
+    };
 
-            log.innerText = "Analysis ready.";
-            setTimeout(() => log.innerText = "", 2000);
+    log.innerText = "Scanning global signals...";
 
-            return { 
-                h: hCount, 
-                r: rCount, 
-                g: gCount, 
-                ddg: ddg.AbstractText ? 1 : 0,
-                pr: Math.min(9.9, pr).toFixed(1) 
-            };
-        }
+    const requests = [
+
+        fetch(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(domain)}&hitsPerPage=10`)
+        .then(r=>r.json())
+        .then(d=>{
+            metrics.hn = d.hits?.length || 0;
+            log.innerText="HN signals detected";
+        }),
+
+        fetch(`https://www.reddit.com/search.json?q=${encodeURIComponent(domain)}&limit=10`)
+        .then(r=>r.json())
+        .then(d=>{
+            metrics.reddit = d.data?.children?.length || 0;
+            log.innerText="Reddit mentions detected";
+        }),
+
+        fetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(domain)}&sort=stars`)
+        .then(r=>r.json())
+        .then(d=>{
+            metrics.github = d.items?.[0]?.stargazers_count || 0;
+            log.innerText="GitHub popularity detected";
+        }),
+
+        fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(domain)}&format=json`)
+        .then(r=>r.json())
+        .then(d=>{
+            metrics.ddg = d.AbstractText ? 1 : 0;
+            log.innerText="DuckDuckGo authority detected";
+        }),
+
+        fetch(`https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&list=search&srsearch=${encodeURIComponent(domain)}`)
+        .then(r=>r.json())
+        .then(d=>{
+            metrics.wiki = d.query?.search?.length || 0;
+            log.innerText="Wikipedia presence checked";
+        }),
+
+        fetch(`https://api.stackexchange.com/2.3/search?order=desc&sort=activity&intitle=${encodeURIComponent(domain)}&site=stackoverflow`)
+        .then(r=>r.json())
+        .then(d=>{
+            metrics.stack = d.items?.length || 0;
+            log.innerText="StackOverflow signals detected";
+        }),
+
+        fetch(`https://registry.npmjs.org/${cleanDomain}`)
+        .then(r=>r.json())
+        .then(d=>{
+            metrics.npm = d.name ? 1 : 0;
+            log.innerText="NPM package detected";
+        })
+        .catch(()=>{}),
+
+        fetch(`https://api.producthunt.com/v2/api/graphql`,{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                query:`{ posts(first:5, query:"${cleanDomain}") { edges { node { name } } } }`
+            })
+        })
+        .then(r=>r.json())
+        .then(d=>{
+            metrics.ph = d.data?.posts?.edges?.length || 0;
+            log.innerText="ProductHunt signals detected";
+        })
+        .catch(()=>{})
+    ];
+
+    await Promise.allSettled(requests);
+
+    log.innerText = "Calculating PR score...";
+
+    let pr = 1;
+
+    if(metrics.wiki>0) pr+=2.5;
+    if(metrics.ddg>0) pr+=1.5;
+    if(metrics.ph>0) pr+=1.5;
+
+    if(metrics.github>0){
+        pr += Math.min(3.5,Math.log10(metrics.github+1));
+    }
+
+    pr += metrics.hn * 0.4;
+    pr += metrics.reddit * 0.25;
+    pr += metrics.stack * 0.3;
+    pr += metrics.npm * 0.5;
+
+    if(url.includes(".ai")) pr+=0.5;
+
+    log.innerText = "AI Index Ready";
+
+    setTimeout(()=>log.innerText="",3000);
+
+    return {
+
+        h:metrics.hn,
+        r:metrics.reddit,
+        g:metrics.github,
+        stack:metrics.stack,
+        npm:metrics.npm,
+        pr:Math.min(9.9,pr).toFixed(1)
+    };
+}
 
         window.analyzeWebsite = async function() {
             const urlInput = document.getElementById('urlInput');
