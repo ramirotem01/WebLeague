@@ -141,31 +141,19 @@
                 robustProxyFetch(`https://www.reddit.com/search.json?q=${encodeURIComponent(domain)}&limit=5`),
                 fetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(domain)}&sort=stars`).then(r => r.json()).catch(() => ({items:[]})),
                 fetch(`https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&list=search&srsearch=${encodeURIComponent(domain)}`).then(r => r.json()).catch(() => ({query:{search:[]}})),
-                robustProxyFetch(`https://www.producthunt.com/search?q=${encodeURIComponent(domain)}`) // PH Signal
+                robustProxyFetch(`https://www.producthunt.com/search?q=${encodeURIComponent(domain)}`)
             ];
 
             const [hn, reddit, gh, wiki, phRaw] = await Promise.all(requests);
 
             let pr = 1.9;
-            
-            // 1. SSL/Security Header Bonus
             if(url.startsWith('https')) pr += 0.3;
-
-            // 2. Wikipedia Authority Bonus
             if(wiki.query?.search?.length > 0) pr += 1.2;
-
-            // 3. Product Hunt Signal
             if(phRaw && phRaw.includes('producthunt.com/posts')) pr += 1.0;
 
-            // 4. GitHub & Development Signal
             const gCount = gh.items?.[0]?.stargazers_count || 0;
-            if(gCount > 0) {
-                pr += 1.5 + Math.min(3.5, gCount / 700);
-                // Age Heuristic: If it has stars, it likely has some age
-                pr += 0.2; 
-            }
+            if(gCount > 0) pr += 1.5 + Math.min(3.5, gCount / 700);
 
-            // 5. Social Presence (HN & Reddit)
             const hCount = hn.hits?.length || 0;
             const rData = (typeof reddit === 'string' ? JSON.parse(reddit) : reddit);
             const rCount = rData?.data?.children?.length || 0;
@@ -190,11 +178,27 @@
             try {
                 const raw = await robustProxyFetch(url);
                 const docParsed = new DOMParser().parseFromString(raw || '', 'text/html');
-                const title = (docParsed.querySelector('title')?.innerText || url.split('/')[2]).split('|')[0].trim();
-                const desc = docParsed.querySelector('meta[name="description"]')?.content?.substring(0, 100) || "AI application indexed by PCS365.";
+                
+                // Extraction Logic
+                const title = (docParsed.querySelector('title')?.innerText || 
+                               docParsed.querySelector('meta[property="og:title"]')?.content || 
+                               url.split('/')[2]).split('|')[0].trim();
+                
+                const metaDesc = docParsed.querySelector('meta[name="description"]')?.content || 
+                                 docParsed.querySelector('meta[property="og:description"]')?.content;
+                
+                const desc = metaDesc ? metaDesc.substring(0, 120) + '...' : "Advanced AI solution exploring new frontiers in technology.";
 
                 const s = await getDeepSignals(title, url);
-                window.tempAI = { url, title, description: desc, pr: s.pr, icon: `https://www.google.com/s2/favicons?sz=128&domain=${url}`, votes: 1, metrics: { reddit: s.r, hn: s.h, github: s.g } };
+                window.tempAI = { 
+                    url, 
+                    title, 
+                    description: desc, 
+                    pr: s.pr, 
+                    icon: `https://www.google.com/s2/favicons?sz=128&domain=${url}`, 
+                    votes: 1, 
+                    metrics: { reddit: s.r, hn: s.h, github: s.g } 
+                };
 
                 updatePreview(window.tempAI);
             } catch (e) { alert("Analysis incomplete. Try again."); }
@@ -281,7 +285,7 @@
                                         <div class="font-bold text-white text-lg tracking-tight">${item.title}</div>
                                         <span class="text-[10px] font-black ${getPRClass(item.pr)} px-2 py-0.5 rounded-md">PR ${item.pr || '2.0'}</span>
                                     </div>
-                                    <div class="text-[11px] text-slate-500 truncate max-w-[200px] italic">${item.description}</div>
+                                    <div class="text-[11px] text-slate-400 truncate max-w-[200px] italic">${item.description}</div>
                                 </div>
                             </div>
                         </td>
