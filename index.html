@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PCS365 | Global AI Index & Leaderboard</title>
+    <title>PCS365 | Weekly AI Leaderboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     
@@ -45,12 +45,12 @@
     <header class="pt-20 pb-10 text-center px-4">
         <h1 class="text-6xl md:text-7xl font-extrabold tracking-tighter mb-6 italic uppercase">Global <span class="accent-text">AI Index</span></h1>
         <p class="text-slate-400 max-w-3xl mx-auto mb-10 text-lg font-medium leading-relaxed">
-            The community-driven leaderboard for AI applications. <br>
-            Multi-signal analysis including Product Hunt, Wikipedia, and Domain Authority.
+            Community-driven voting for the best AI tools of the week. <br>
+            Analyzed via Product Hunt, GitHub, and social authority signals (PR).
         </p>
         
         <div class="max-w-2xl mx-auto glass p-2 rounded-2xl flex flex-col md:flex-row gap-2 shadow-2xl mb-4 border-white/10">
-            <input type="url" id="urlInput" placeholder="Enter AI Tool URL (e.g., https://perplexity.ai)" class="flex-1 bg-transparent p-4 outline-none text-white font-medium placeholder:text-slate-600">
+            <input type="url" id="urlInput" placeholder="Paste AI tool URL (e.g., https://perplexity.ai)" class="flex-1 bg-transparent p-4 outline-none text-white font-medium placeholder:text-slate-600">
             <button onclick="analyzeWebsite()" id="mainBtn" class="btn-gradient px-10 py-4 rounded-xl font-bold flex items-center justify-center gap-3 active:scale-95 transition-all">
                 <span id="btnLabel">Analyze & List</span>
                 <div id="btnSpinner" class="loader hidden"></div>
@@ -59,7 +59,7 @@
         <div id="scanLog" class="text-[9px] font-bold text-slate-600 uppercase tracking-[0.3em] mb-8 h-4"></div>
 
         <div class="max-w-md mx-auto">
-            <input type="text" id="searchInput" oninput="filterTable()" placeholder="Search tools..." class="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none focus:border-indigo-500 text-sm">
+            <input type="text" id="searchInput" oninput="filterTable()" placeholder="Search leaderboard..." class="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none focus:border-indigo-500 text-sm">
         </div>
     </header>
 
@@ -77,7 +77,7 @@
                         <div id="metricsVisual" class="flex gap-2"></div>
                     </div>
                 </div>
-                <button onclick="confirmSubmission()" class="bg-white text-black px-12 py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-slate-200 transition-all">Confirm Listing</button>
+                <button onclick="confirmSubmission()" class="bg-white text-black px-12 py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-slate-200 transition-all">Add to Leaderboard</button>
             </div>
         </div>
 
@@ -86,15 +86,15 @@
                 <thead>
                     <tr class="text-[10px] uppercase tracking-widest text-slate-500 border-b border-white/5 bg-white/[0.02]">
                         <th class="p-6">Rank</th>
-                        <th class="p-6">Application</th>
-                        <th class="p-6">Live Signals</th>
+                        <th class="p-6">AI Application</th>
+                        <th class="p-6">Social Auth</th>
                         <th class="p-6 text-center">Score</th>
                         <th class="p-6"></th>
                     </tr>
                 </thead>
                 <tbody id="leaderboardBody" class="divide-y divide-white/5"></tbody>
             </table>
-            <div id="loaderText" class="p-20 text-center text-slate-600 text-xs font-bold uppercase tracking-widest animate-pulse">Connecting to PCS365 Index...</div>
+            <div id="loaderText" class="p-20 text-center text-slate-600 text-xs font-bold uppercase tracking-widest animate-pulse">Syncing with PCS365 Index...</div>
         </div>
     </main>
 
@@ -137,41 +137,32 @@
             log.innerText = "Analyzing Authority & History...";
             
             const requests = [
-                fetch(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(domain)}&hitsPerPage=5`).then(r => r.json()).catch(() => ({hits:[]})),
-                robustProxyFetch(`https://www.reddit.com/search.json?q=${encodeURIComponent(domain)}&limit=5`),
+                fetch(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(domain)}&hitsPerPage=3`).then(r => r.json()).catch(() => ({hits:[]})),
+                robustProxyFetch(`https://www.reddit.com/search.json?q=${encodeURIComponent(domain)}&limit=3`),
                 fetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(domain)}&sort=stars`).then(r => r.json()).catch(() => ({items:[]})),
                 fetch(`https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&list=search&srsearch=${encodeURIComponent(domain)}`).then(r => r.json()).catch(() => ({query:{search:[]}})),
-                robustProxyFetch(`https://www.producthunt.com/search?q=${encodeURIComponent(domain)}`) // PH Signal
+                robustProxyFetch(`https://www.producthunt.com/search?q=${encodeURIComponent(domain)}`)
             ];
 
             const [hn, reddit, gh, wiki, phRaw] = await Promise.all(requests);
 
-            let pr = 1.9;
+            // STRICT CALCULATION (Weighted PR)
+            let pr = 1.0; 
             
-            // 1. SSL/Security Header Bonus
-            if(url.startsWith('https')) pr += 0.3;
+            if(wiki.query?.search?.length > 0) pr += 1.8;
+            if(phRaw && phRaw.includes('producthunt.com/posts')) pr += 1.2;
 
-            // 2. Wikipedia Authority Bonus
-            if(wiki.query?.search?.length > 0) pr += 1.2;
-
-            // 3. Product Hunt Signal
-            if(phRaw && phRaw.includes('producthunt.com/posts')) pr += 1.0;
-
-            // 4. GitHub & Development Signal
             const gCount = gh.items?.[0]?.stargazers_count || 0;
-            if(gCount > 0) {
-                pr += 1.5 + Math.min(3.5, gCount / 700);
-                // Age Heuristic: If it has stars, it likely has some age
-                pr += 0.2; 
-            }
+            if(gCount > 10) pr += Math.min(3.0, gCount / 1000); 
 
-            // 5. Social Presence (HN & Reddit)
             const hCount = hn.hits?.length || 0;
             const rData = (typeof reddit === 'string' ? JSON.parse(reddit) : reddit);
             const rCount = rData?.data?.children?.length || 0;
             
-            pr += (hCount * 0.8) + (rCount * 0.6);
-            if(url.includes('.ai')) pr += 0.5;
+            pr += (hCount * 0.4) + (rCount * 0.2);
+
+            if(url.startsWith('https')) pr += 0.2;
+            if(url.includes('.ai') || url.includes('.io')) pr += 0.3;
 
             log.innerText = "Deep Scan Completed.";
             setTimeout(() => log.innerText = "", 2000);
@@ -190,14 +181,24 @@
             try {
                 const raw = await robustProxyFetch(url);
                 const docParsed = new DOMParser().parseFromString(raw || '', 'text/html');
-                const title = (docParsed.querySelector('title')?.innerText || url.split('/')[2]).split('|')[0].trim();
-                const desc = docParsed.querySelector('meta[name="description"]')?.content?.substring(0, 100) || "AI application indexed by PCS365.";
+                const title = (docParsed.querySelector('title')?.innerText || 
+                               docParsed.querySelector('meta[property="og:title"]')?.content || 
+                               url.split('/')[2]).split('|')[0].trim();
+                
+                const metaDesc = docParsed.querySelector('meta[name="description"]')?.content || 
+                                 docParsed.querySelector('meta[property="og:description"]')?.content;
+                
+                const desc = metaDesc ? metaDesc.substring(0, 110) + '...' : "An innovative AI application discovered and analyzed by the PCS365 community.";
 
                 const s = await getDeepSignals(title, url);
-                window.tempAI = { url, title, description: desc, pr: s.pr, icon: `https://www.google.com/s2/favicons?sz=128&domain=${url}`, votes: 1, metrics: { reddit: s.r, hn: s.h, github: s.g } };
+                window.tempAI = { 
+                    url, title, description: desc, pr: s.pr, 
+                    icon: `https://www.google.com/s2/favicons?sz=128&domain=${url}`, 
+                    votes: 1, metrics: { reddit: s.r, hn: s.h, github: s.g } 
+                };
 
                 updatePreview(window.tempAI);
-            } catch (e) { alert("Analysis incomplete. Try again."); }
+            } catch (e) { alert("Analysis failed."); }
             finally { 
                 document.getElementById('btnLabel').innerText = "Analyze & List";
                 document.getElementById('btnSpinner').classList.add('hidden');
@@ -220,7 +221,7 @@
 
         function getPRClass(pr) {
             if(pr >= 8) return "bg-yellow-500/20 text-yellow-400 border border-yellow-500/40";
-            if(pr >= 5) return "bg-indigo-600 text-white shadow-lg";
+            if(pr >= 5) return "bg-indigo-600 text-white";
             return "bg-white/10 text-slate-400";
         }
 
@@ -234,7 +235,7 @@
         window.vote = async function(id) {
             const key = `v_log_${new Date().getFullYear()}-W${Math.ceil(new Date().getDate()/7)}`;
             let log = JSON.parse(localStorage.getItem(key) || '[]');
-            if(log.length >= 3) return alert("Weekly limit reached (3 votes).");
+            if(log.length >= 3) return alert("Weekly limit reached (3/3 votes).");
             await updateDoc(doc(db, "league_sites", id), { votes: increment(1) });
             log.push(id); localStorage.setItem(key, JSON.stringify(log));
             loadIndex();
@@ -279,7 +280,7 @@
                                 <div>
                                     <div class="flex items-center gap-2 mb-0.5">
                                         <div class="font-bold text-white text-lg tracking-tight">${item.title}</div>
-                                        <span class="text-[10px] font-black ${getPRClass(item.pr)} px-2 py-0.5 rounded-md">PR ${item.pr || '2.0'}</span>
+                                        <span class="text-[10px] font-black ${getPRClass(item.pr)} px-2 py-0.5 rounded-md">PR ${item.pr || '1.0'}</span>
                                     </div>
                                     <div class="text-[11px] text-slate-500 truncate max-w-[200px] italic">${item.description}</div>
                                 </div>
@@ -287,14 +288,14 @@
                         </td>
                         <td class="p-6">
                             <div class="flex flex-col gap-0.5 font-bold text-[9px] uppercase tracking-tighter whitespace-nowrap">
-                                <span class="text-orange-500/80">Reddit: ${item.metrics?.reddit || 0}</span>
-                                <span class="text-emerald-500/80">HackerN: ${item.metrics?.hn || 0}</span>
+                                <span class="text-orange-500/80">Reddit Impact: ${item.metrics?.reddit || 0}</span>
+                                <span class="text-emerald-500/80">HackerN Feed: ${item.metrics?.hn || 0}</span>
                                 <span class="text-blue-500/80">GitHub Stars: ${item.metrics?.github || 0}</span>
                             </div>
                         </td>
                         <td class="p-6 text-center">
                             <div class="text-3xl font-black text-white tracking-tighter">${item.votes}</div>
-                            <div class="text-[8px] font-bold text-slate-600 uppercase">Points</div>
+                            <div class="text-[8px] font-bold text-slate-600 uppercase">Weekly Votes</div>
                         </td>
                         <td class="p-6 text-right">
                             <div class="flex items-center justify-end gap-[1px]">
