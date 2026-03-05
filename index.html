@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PCS365 | AI Tools Index & League</title>
+    <title>PCS365 | AI Tools Index & Weekly League</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     
@@ -17,8 +17,6 @@
         .btn-gradient { background: linear-gradient(90deg, #4f46e5, #7c3aed); transition: all 0.3s ease; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
         .modal.active { display: flex; }
-        /* Badge PR style */
-        .pr-display { font-size: 14px; font-weight: 900; letter-spacing: -0.02em; }
     </style>
 </head>
 <body class="min-h-screen hero-glow">
@@ -26,29 +24,32 @@
     <div id="badgeModal" class="modal" onclick="closeModal()">
         <div class="glass p-8 rounded-3xl max-w-lg w-full" onclick="event.stopPropagation()">
             <h3 class="text-2xl font-bold mb-2">Get Your AI Badge</h3>
-            <div class="bg-black/50 p-4 rounded-xl mb-6">
+            <div class="bg-black/50 p-4 rounded-xl mb-6 text-center">
                 <div id="badgePreview" class="mb-4 flex justify-center"></div>
                 <code id="badgeCode" class="text-[10px] text-indigo-300 break-all block p-3 bg-white/5 rounded"></code>
             </div>
-            <button onclick="copyBadgeCode()" class="w-full bg-indigo-600 py-3 rounded-xl font-bold hover:bg-indigo-500 transition-all">Copy HTML Code</button>
+            <button onclick="copyBadgeCode()" class="w-full bg-indigo-600 py-3 rounded-xl font-bold uppercase">Copy HTML Code</button>
         </div>
     </div>
 
     <nav class="p-6 border-b border-white/5 bg-black/20 sticky top-0 z-50 backdrop-blur-md">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-extrabold text-white shadow-lg shadow-indigo-500/20">AI</div>
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-extrabold text-white">AI</div>
                 <span class="text-xl font-extrabold tracking-tight uppercase">PCS365 <span class="text-indigo-400">Index</span></span>
             </div>
             <div class="bg-indigo-500/10 border border-indigo-500/20 px-4 py-2 rounded-full">
-                <span class="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">Weekly Votes Left: <span id="votesLeft" class="text-white text-xs">3</span></span>
+                <span class="text-[10px] font-bold text-indigo-300 uppercase">Weekly Votes: <span id="votesLeft" class="text-white">3</span></span>
             </div>
         </div>
     </nav>
 
-    <header class="pt-24 pb-12 text-center px-4">
-        <h1 class="text-6xl md:text-7xl font-extrabold tracking-tighter mb-6">GLOBAL <span class="accent-text">AI</span> DIRECTORY</h1>
-        <p class="text-slate-400 max-w-2xl mx-auto mb-12 text-lg leading-relaxed">Submit your AI tool to the PCS365 ecosystem. Real-time Power Score based on Reddit, HN & Web trends.</p>
+    <header class="pt-20 pb-10 text-center px-4">
+        <h1 class="text-6xl md:text-7xl font-extrabold tracking-tighter mb-6 italic">GLOBAL <span class="accent-text">AI</span> LEAGUE</h1>
+        <p class="text-slate-400 max-w-3xl mx-auto mb-10 text-lg font-medium leading-relaxed">
+            ליגת ה-AI השבועית של PCS365: דירוג מבוסס קהילה בשילוב ניתוח אותות מרשתות חברתיות (Reddit & HN). 
+            הצביעו לכלים האהובים עליכם והשפיעו על הדירוג העולמי!
+        </p>
         
         <div class="max-w-2xl mx-auto glass p-2 rounded-2xl flex flex-col md:flex-row gap-2 shadow-2xl mb-6">
             <input type="url" id="urlInput" placeholder="Paste AI App URL (https://...)" 
@@ -59,37 +60,44 @@
             </button>
         </div>
 
-        <div class="max-w-md mx-auto relative">
-            <input type="text" id="searchInput" oninput="filterTable()" placeholder="Search tools..." 
-                class="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none focus:border-indigo-500/50 text-sm">
+        <div class="max-w-md mx-auto">
+            <input type="text" id="searchInput" oninput="filterTable()" placeholder="Search league tools..." 
+                class="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none focus:border-indigo-500 text-sm">
         </div>
     </header>
 
-    <main class="max-w-5xl mx-auto px-4 pb-32">
-        <div id="previewCard" class="hidden glass rounded-3xl p-8 mb-8 border-indigo-500/40">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-8">
+    <main class="max-w-6xl mx-auto px-4 pb-32">
+        <div id="previewCard" class="hidden glass rounded-3xl p-8 mb-4 border-indigo-500/40">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-8 text-left">
                 <div class="flex items-center gap-6">
-                    <img id="siteIcon" src="" class="w-20 h-20 rounded-2xl bg-white/5 p-2 border border-white/10">
-                    <div class="text-left">
-                        <div class="flex items-center gap-2">
-                            <h2 id="siteTitle" class="text-3xl font-bold text-white tracking-tight"></h2>
-                            <span id="sitePR" class="bg-indigo-600 text-white text-xs px-3 py-1 rounded-full font-black shadow-lg shadow-indigo-500/20">PR 5.0</span>
+                    <img id="siteIcon" src="" class="w-20 h-20 rounded-2xl bg-white/5 p-2">
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <h2 id="siteTitle" class="text-3xl font-black text-white tracking-tighter"></h2>
+                            <span id="sitePR" class="bg-indigo-600 text-white text-[14px] px-4 py-1 rounded-full font-black shadow-lg">PR 5.0</span>
                         </div>
-                        <p id="siteDesc" class="text-slate-400 text-sm my-1"></p>
-                        <div id="metricsLog" class="text-[9px] text-indigo-400 font-mono uppercase mt-2 opacity-70"></div>
+                        <p id="siteDesc" class="text-slate-400 text-sm mb-4 max-w-md"></p>
+                        <div id="metricsVisual" class="flex gap-3"></div>
                     </div>
                 </div>
                 <button onclick="confirmSubmission()" class="bg-white text-black hover:bg-slate-200 px-12 py-5 rounded-2xl font-black uppercase tracking-widest transition-all">Confirm Listing</button>
             </div>
         </div>
 
-        <div class="glass rounded-3xl overflow-hidden border border-white/5 shadow-2xl mt-4">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <tbody id="leaderboardBody" class="divide-y divide-white/5"></tbody>
-                </table>
-            </div>
-            <div id="loaderText" class="p-20 text-center text-slate-600 text-xs font-bold uppercase tracking-widest animate-pulse">Syncing Database...</div>
+        <div class="glass rounded-3xl overflow-hidden border border-white/5 shadow-2xl mt-2">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="text-[10px] uppercase tracking-[0.2em] text-slate-500 border-b border-white/5 bg-white/[0.02]">
+                        <th class="p-8">Rank</th>
+                        <th class="p-8">Tool Info</th>
+                        <th class="p-8">Growth Signals</th>
+                        <th class="p-8 text-center">Score</th>
+                        <th class="p-8"></th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody" class="divide-y divide-white/5"></tbody>
+            </table>
+            <div id="loaderText" class="p-20 text-center text-slate-600 text-xs font-bold uppercase animate-pulse">Syncing...</div>
         </div>
     </main>
 
@@ -110,76 +118,87 @@
         const db = getFirestore(app);
         let masterData = [];
 
-        // --- Resilient Growth Fetcher ---
-        async function fetchGrowthMetrics(name) {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 4000); // 4 sec timeout
+        // --- ULTRA STABLE FETCHER ---
+        async function robustFetch(name) {
+            const results = { reddit: 0, hn: 0 };
+            const controllers = [new AbortController(), new AbortController()];
+            
+            // Parallel fetches with short timeouts
+            const redditPromise = fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.reddit.com/search.json?q=${name}&limit=3`)}`, { signal: controllers[0].signal })
+                .then(r => r.json()).then(d => JSON.parse(d.contents).data?.children?.length || 0).catch(() => 0);
 
-            let redditMentions = 0;
-            let hnMentions = 0;
+            const hnPromise = fetch(`https://hn.algolia.com/api/v1/search?query=${name}&hitsPerPage=5`, { signal: controllers[1].signal })
+                .then(r => r.json()).then(d => d.hits?.length || 0).catch(() => 0);
 
-            try {
-                // Reddit Check
-                const rRes = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.reddit.com/search.json?q=${name}&limit=5`)}`, { signal: controller.signal });
-                const rData = await rRes.json();
-                redditMentions = JSON.parse(rData.contents).data?.children?.length || 0;
-            } catch(e) { redditMentions = 0; }
+            // Timeout safety
+            const timeout = new Promise(resolve => setTimeout(() => {
+                controllers.forEach(c => c.abort());
+                resolve(0);
+            }, 3500));
 
-            try {
-                // HN Check
-                const hRes = await fetch(`https://hn.algolia.com/api/v1/search?query=${name}`, { signal: controller.signal });
-                const hData = await hRes.json();
-                hnMentions = hData.hits?.length || 0;
-            } catch(e) { hnMentions = 0; }
+            const [r, h] = await Promise.all([
+                Promise.race([redditPromise, timeout]),
+                Promise.race([hnPromise, timeout])
+            ]);
 
-            clearTimeout(timeoutId);
-            return { redditMentions, hnMentions };
+            return { reddit: r || 0, hn: h || 0 };
         }
 
         window.analyzeWebsite = async function() {
-            const url = document.getElementById('urlInput').value.trim();
+            const urlInput = document.getElementById('urlInput');
+            const url = urlInput.value.trim();
+            if(!url.startsWith('http')) return alert("Please enter a full URL (https://...)");
+
             const btnLabel = document.getElementById('btnLabel');
             const btnSpinner = document.getElementById('btnSpinner');
-
-            if(!url.startsWith('http')) return alert("Enter valid URL");
-            btnLabel.innerText = "Analyzing Score...";
+            
+            btnLabel.innerText = "Analyzing...";
             btnSpinner.classList.remove('hidden');
 
+            // Initial Data (Quick Fallback)
+            const siteName = url.split('/')[2].replace('www.', '').split('.')[0];
+            window.tempAI = { 
+                url, title: siteName.charAt(0).toUpperCase() + siteName.slice(1), 
+                description: "Optimizing AI experience...", 
+                pr: "5.0", icon: `https://www.google.com/s2/favicons?sz=128&domain=${url}`, 
+                votes: 1, metrics: { reddit: 0, hn: 0 } 
+            };
+
             try {
+                // Try to get meta-data
                 const metaRes = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
-                const metaData = await metaRes.json();
-                const docParsed = new DOMParser().parseFromString(metaData.contents, 'text/html');
+                const metaJson = await metaRes.json();
+                const parser = new DOMParser();
+                const docParsed = parser.parseFromString(metaJson.contents, 'text/html');
                 
-                const title = (docParsed.querySelector('title')?.innerText || url.split('/')[2]).split('|')[0].trim();
-                const desc = docParsed.querySelector('meta[name="description"]')?.content || "AI Tool Submission";
+                window.tempAI.title = (docParsed.querySelector('title')?.innerText || window.tempAI.title).split('|')[0].trim();
+                window.tempAI.description = docParsed.querySelector('meta[name="description"]')?.content?.substring(0, 100) || "An AI tool for the next generation.";
                 
-                // Smart Stats
-                const metrics = await fetchGrowthMetrics(title);
+                // Growth Signals
+                const metrics = await robustFetch(window.tempAI.title);
+                window.tempAI.metrics = metrics;
                 
-                // Balanced PR: Base 5 + URL bonus + Mentions bonus
-                let basePR = 5.0;
-                if(url.includes('.ai')) basePR += 1.0;
-                if(desc.length > 50) basePR += 0.5;
-                
-                let finalPR = (basePR + (metrics.redditMentions * 0.4) + (metrics.hnMentions * 0.5)).toFixed(1);
-                if(finalPR > 9.9) finalPR = 9.9;
+                let calculatedPR = (5.0 + (url.includes('.ai') ? 1.0 : 0) + (metrics.reddit * 0.4) + (metrics.hn * 0.5)).toFixed(1);
+                window.tempAI.pr = Math.min(9.9, calculatedPR);
 
-                window.tempAI = {
-                    url, title, description: desc.substring(0, 100),
-                    pr: finalPR,
-                    icon: `https://www.google.com/s2/favicons?sz=128&domain=${url}`,
-                    votes: 1,
-                    metrics: metrics
-                };
-
-                document.getElementById('siteTitle').innerText = title;
-                document.getElementById('siteDesc').innerText = desc;
-                document.getElementById('sitePR').innerText = `PR ${finalPR}`;
-                document.getElementById('metricsLog').innerText = `R-Signals: ${metrics.redditMentions} | H-Signals: ${metrics.hnMentions}`;
+                // Update UI
+                document.getElementById('siteTitle').innerText = window.tempAI.title;
+                document.getElementById('siteDesc').innerText = window.tempAI.description;
+                document.getElementById('sitePR').innerText = `PR ${window.tempAI.pr}`;
                 document.getElementById('siteIcon').src = window.tempAI.icon;
+                document.getElementById('metricsVisual').innerHTML = `
+                    <div class="bg-orange-500/10 text-orange-400 text-[10px] font-bold px-3 py-1 rounded-lg border border-orange-500/20">Reddit: ${metrics.reddit}</div>
+                    <div class="bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-3 py-1 rounded-lg border border-emerald-500/20">HN: ${metrics.hn}</div>
+                `;
                 document.getElementById('previewCard').classList.remove('hidden');
-            } catch(e) { alert("Network error. Try manually."); }
-            finally { btnLabel.innerText = "Analyze & List"; btnSpinner.classList.add('hidden'); }
+            } catch (e) {
+                // Even on error, show the card with basic info
+                document.getElementById('siteTitle').innerText = window.tempAI.title;
+                document.getElementById('previewCard').classList.remove('hidden');
+            } finally {
+                btnLabel.innerText = "Analyze & List";
+                btnSpinner.classList.add('hidden');
+            }
         };
 
         window.confirmSubmission = async function() {
@@ -191,7 +210,7 @@
         window.vote = async function(id) {
             const key = `v_log_${new Date().getFullYear()}-W${Math.ceil(new Date().getDate()/7)}`;
             let log = JSON.parse(localStorage.getItem(key) || '[]');
-            if(log.length >= 3) return alert("Weekly Limit: 3 votes.");
+            if(log.length >= 3) return alert("Weekly Limit reached.");
             await updateDoc(doc(db, "league_sites", id), { votes: increment(1) });
             log.push(id);
             localStorage.setItem(key, JSON.stringify(log));
@@ -202,7 +221,7 @@
             const code = `<div style="padding:20px; background:#05070a; border:1px solid #4f46e5; border-radius:15px; color:white; text-align:center; font-family:sans-serif; width:220px;">
                 <div style="font-size:10px; color:#818cf8; font-weight:bold; letter-spacing:2px;">RANKED #${rank}</div>
                 <div style="font-size:18px; font-weight:800; margin:10px 0;">${title}</div>
-                <div style="font-size:10px; opacity:0.5;">PCS365 AI INDEX</div>
+                <div style="font-size:10px; opacity:0.5;">PCS365 AI LEAGUE</div>
             </div>`;
             document.getElementById('badgePreview').innerHTML = code;
             document.getElementById('badgeCode').innerText = code;
@@ -231,30 +250,33 @@
             const tbody = document.getElementById('leaderboardBody');
             tbody.innerHTML = '';
             data.forEach((item, i) => {
-                const r = i + 1;
-                const rankDisplay = r <= 3 ? (r === 1 ? '🥇' : r === 2 ? '🥈' : '🥉') : `<span class="opacity-20 text-xl font-bold">${r}</span>`;
+                const rank = i + 1;
                 tbody.innerHTML += `
-                    <tr class="hover:bg-white/[0.02] group transition-all">
-                        <td class="p-8 font-black text-2xl">${rankDisplay}</td>
+                    <tr class="hover:bg-white/[0.01] transition-all">
+                        <td class="p-8 font-black text-2xl opacity-30">${rank}</td>
                         <td class="p-8">
                             <div class="flex items-center gap-5">
-                                <img src="${item.icon}" class="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 p-1">
+                                <img src="${item.icon}" class="w-14 h-14 rounded-2xl bg-white/5 p-1">
                                 <div>
                                     <div class="flex items-center gap-3 mb-1">
-                                        <div class="font-bold text-white text-xl">${item.title}</div>
-                                        <span class="pr-display text-indigo-400 bg-indigo-400/10 px-3 py-0.5 rounded-lg border border-indigo-400/20">PR ${item.pr || '5.0'}</span>
+                                        <div class="font-bold text-white text-xl tracking-tight">${item.title}</div>
+                                        <span class="text-[12px] font-black text-indigo-400 bg-indigo-400/10 px-3 py-0.5 rounded-lg border border-indigo-400/20">PR ${item.pr || '5.0'}</span>
                                     </div>
-                                    <div class="text-xs text-slate-500 max-w-sm truncate">${item.description}</div>
+                                    <div class="text-xs text-slate-500 max-w-sm truncate italic">${item.description}</div>
                                 </div>
                             </div>
                         </td>
-                        <td class="p-8 text-center">
-                            <div class="text-3xl font-black text-white">${item.votes}</div>
-                            <div class="text-[9px] font-bold text-slate-600 uppercase tracking-widest">Points</div>
+                        <td class="p-8">
+                            <div class="text-[10px] font-bold text-orange-500/70 mb-1 uppercase tracking-widest">Reddit: ${item.metrics?.reddit || 0}</div>
+                            <div class="text-[10px] font-bold text-emerald-500/70 uppercase tracking-widest">HackerNews: ${item.metrics?.hn || 0}</div>
                         </td>
-                        <td class="p-8 text-right space-x-4">
-                            <button onclick="openBadgeModal('${item.title}', ${r})" class="text-xs font-bold text-slate-500 hover:text-indigo-400 transition-colors">Badge</button>
-                            <button onclick="vote('${item.id}')" class="bg-indigo-500/10 hover:bg-indigo-600 border border-indigo-500/20 text-indigo-400 hover:text-white px-8 py-3 rounded-xl text-xs font-black uppercase transition-all shadow-lg hover:shadow-indigo-500/20">Vote</button>
+                        <td class="p-8 text-center">
+                            <div class="text-4xl font-black text-white tracking-tighter">${item.votes}</div>
+                            <div class="text-[8px] font-bold text-slate-600 uppercase">Pts</div>
+                        </td>
+                        <td class="p-8 text-right space-x-3">
+                            <button onclick="openBadgeModal('${item.title}', ${rank})" class="text-[10px] font-bold text-slate-500 hover:text-indigo-400">Badge</button>
+                            <button onclick="vote('${item.id}')" class="bg-indigo-600/10 hover:bg-indigo-600 border border-indigo-500/20 text-indigo-400 hover:text-white px-8 py-3 rounded-2xl text-[11px] font-black uppercase transition-all shadow-lg active:scale-95">Vote</button>
                         </td>
                     </tr>`;
             });
