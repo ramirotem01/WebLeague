@@ -265,4 +265,30 @@
                             </div>
                         </td>
                         <td class="p-6">
-                            <div class="flex flex-col gap-0.5 font-bold text-
+                            <div class="flex flex-col gap-0.5 font-bold text-[9px] uppercase tracking-tighter whitespace-nowrap">
+                                <span class="text-orange-500/80">Reddit Impact: ${item.metrics?.reddit || 0}</span>
+                                <span class="text-emerald-500/80">HackerN Feed: ${item.metrics?.hn || 0}</span>
+                                <span class="text-blue-500/80">GitHub Stars: ${item.metrics?.github || 0}</span>
+                            </div>
+                        </td>
+                        <td class="p-6 text-center">
+                            <div class="text-3xl font-black text-white tracking-tighter">${item.votes}</div>
+                            <div class="text-[8px] font-bold text-slate-600 uppercase">Weekly Votes</div>
+                        </td>
+                        <td class="p-6 text-right">
+                            <div class="flex items-center justify-end gap-[1px]">
+                                <button onclick="openBadgeModal('${item.title}', ${rank})" class="bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 px-5 py-2.5 rounded-l-xl text-[10px] font-black uppercase transition-all border border-indigo-500/10">Badge</button>
+                                <button onclick="vote('${item.id}')" class="bg-transparent hover:bg-orange-500/10 border border-orange-500 text-orange-500 px-6 py-2.5 rounded-r-xl text-[10px] font-black uppercase transition-all active:scale-95">Vote</button>
+                            </div>
+                        </td>
+                    </tr>`;
+            });
+        }
+        window.filterTable = () => {
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            renderTable(masterData.filter(s => s.title.toLowerCase().includes(term)));
+        };
+        loadIndex();
+    </script>
+</body>
+</html>
