@@ -17,14 +17,13 @@
         .btn-gradient { background: linear-gradient(90deg, #4f46e5, #7c3aed); transition: all 0.3s ease; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
         .modal.active { display: flex; }
-        .pr-badge { font-weight: 900; letter-spacing: -0.02em; }
     </style>
 </head>
 <body class="min-h-screen hero-glow">
 
     <div id="badgeModal" class="modal" onclick="closeModal()">
         <div class="glass p-8 rounded-3xl max-w-lg w-full" onclick="event.stopPropagation()">
-            <h3 class="text-2xl font-bold mb-2">Get Your AI Badge</h3>
+            <h3 class="text-2xl font-bold mb-2 text-white">Get Your AI Badge</h3>
             <div class="bg-black/50 p-4 rounded-xl mb-6 text-center">
                 <div id="badgePreview" class="mb-4 flex justify-center"></div>
                 <code id="badgeCode" class="text-[10px] text-indigo-300 break-all block p-3 bg-white/5 rounded"></code>
@@ -40,28 +39,28 @@
                 <span class="text-xl font-extrabold tracking-tight uppercase">PCS365 <span class="text-indigo-400">Index</span></span>
             </div>
             <div class="bg-indigo-500/10 border border-indigo-500/20 px-4 py-2 rounded-full">
-                <span class="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">Votes Left: <span id="votesLeft" class="text-white">3</span></span>
+                <span class="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">Votes Left: <span id="votesLeft" class="text-white text-xs">3</span></span>
             </div>
         </div>
     </nav>
 
     <header class="pt-20 pb-10 text-center px-4">
         <h1 class="text-6xl md:text-7xl font-extrabold tracking-tighter mb-6 italic uppercase">Global <span class="accent-text">AI League</span></h1>
-        <p class="text-slate-400 max-w-3xl mx-auto mb-10 text-lg font-medium">
-            The definitive AI leaderboard. Ranked by community votes and real-time signals from Reddit, HackerNews, and GitHub.
+        <p class="text-slate-400 max-w-3xl mx-auto mb-10 text-lg font-medium italic">
+            "Real-time social signals meet community rankings."
         </p>
         
         <div class="max-w-2xl mx-auto glass p-2 rounded-2xl flex flex-col md:flex-row gap-2 shadow-2xl mb-8">
             <input type="url" id="urlInput" placeholder="Paste AI App URL (https://...)" 
                 class="flex-1 bg-transparent p-4 outline-none text-white font-medium placeholder:text-slate-600">
-            <button onclick="analyzeWebsite()" id="mainBtn" class="btn-gradient px-10 py-4 rounded-xl font-bold flex items-center justify-center gap-3 active:scale-95 transition-transform">
+            <button onclick="analyzeWebsite()" id="mainBtn" class="btn-gradient px-10 py-4 rounded-xl font-bold flex items-center justify-center gap-3 active:scale-95 transition-all">
                 <span id="btnLabel">Analyze & List</span>
                 <div id="btnSpinner" class="loader hidden"></div>
             </button>
         </div>
 
-        <div class="max-w-md mx-auto">
-            <input type="text" id="searchInput" oninput="filterTable()" placeholder="Search tools..." 
+        <div class="max-w-md mx-auto relative">
+            <input type="text" id="searchInput" oninput="filterTable()" placeholder="Filter league..." 
                 class="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none focus:border-indigo-500 text-sm">
         </div>
     </header>
@@ -74,7 +73,7 @@
                     <div>
                         <div class="flex items-center gap-3 mb-2">
                             <h2 id="siteTitle" class="text-3xl font-black text-white tracking-tighter"></h2>
-                            <span id="sitePR" class="px-4 py-1 rounded-full font-black text-sm pr-badge"></span>
+                            <span id="sitePR" class="px-4 py-1 rounded-full font-black text-sm"></span>
                         </div>
                         <p id="siteDesc" class="text-slate-400 text-sm mb-4 max-w-md italic"></p>
                         <div id="metricsVisual" class="flex gap-2"></div>
@@ -85,21 +84,19 @@
         </div>
 
         <div class="glass rounded-3xl overflow-hidden border border-white/5 shadow-2xl">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead>
-                        <tr class="text-[10px] uppercase tracking-[0.2em] text-slate-500 border-b border-white/5 bg-white/[0.02]">
-                            <th class="p-6">Rank</th>
-                            <th class="p-6">Application</th>
-                            <th class="p-6">Social Signals</th>
-                            <th class="p-6 text-center">Score</th>
-                            <th class="p-6"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="leaderboardBody" class="divide-y divide-white/5"></tbody>
-                </table>
-            </div>
-            <div id="loaderText" class="p-20 text-center text-slate-600 text-xs font-bold uppercase tracking-widest animate-pulse">Fetching Global Stats...</div>
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="text-[10px] uppercase tracking-[0.2em] text-slate-500 border-b border-white/5 bg-white/[0.02]">
+                        <th class="p-6">Rank</th>
+                        <th class="p-6">Application</th>
+                        <th class="p-6">Growth Signals</th>
+                        <th class="p-6 text-center">Score</th>
+                        <th class="p-6"></th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody" class="divide-y divide-white/5"></tbody>
+            </table>
+            <div id="loaderText" class="p-20 text-center text-slate-600 text-xs font-bold uppercase tracking-widest animate-pulse">Syncing League Data...</div>
         </div>
     </main>
 
@@ -120,42 +117,47 @@
         const db = getFirestore(app);
         let masterData = [];
 
-        // --- DEEP SCANNED PR LOGIC ---
-        async function calculateDeepPR(name, url) {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 4500);
-
-            let r = 0, h = 0, g = 0;
-            try {
-                const hnRes = await fetch(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(name)}&hitsPerPage=5`, { signal: controller.signal });
-                const hnData = await hnRes.json();
-                h = hnData.hits?.length || 0;
-            } catch(e) {}
-
-            try {
-                const rUrl = `https://www.reddit.com/search.json?q=${encodeURIComponent(name)}&limit=3`;
-                const rRes = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(rUrl)}&t=${Date.now()}`, { signal: controller.signal });
-                const rData = await rRes.json();
-                r = JSON.parse(rData.contents).data?.children?.length || 0;
-            } catch(e) {}
-
-            try {
-                const ghRes = await fetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(name)}&sort=stars`, { signal: controller.signal });
-                const ghData = await ghRes.json();
-                g = ghData.items?.[0]?.stargazers_count || 0;
-            } catch(e) {}
-
-            clearTimeout(timeout);
-
-            // Calculation
-            let score = 1.8; // Low starting point for unknown tools
-            score += (h * 0.6);
-            score += (r * 0.4);
-            if(g > 0) score += 1.5 + Math.min(2.5, g / 500);
-            if(url.includes('.ai')) score += 0.5;
+        // --- STABILIZED MULTI-PROXY FETCHER ---
+        async function fetchWithRetry(url, isJson = true) {
+            const proxies = [
+                `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+                `https://corsproxy.io/?${encodeURIComponent(url)}`
+            ];
             
-            // Hard cap for zero-signal tools
-            if(h === 0 && r === 0 && g === 0) score = Math.min(score, 3.0);
+            for (const proxy of proxies) {
+                try {
+                    const res = await fetch(proxy, { signal: AbortSignal.timeout(6000) });
+                    if (!res.ok) continue;
+                    const data = await res.json();
+                    return isJson ? JSON.parse(data.contents || data) : (data.contents || data);
+                } catch (e) { continue; }
+            }
+            return null;
+        }
+
+        async function getStats(name, domain) {
+            // Run all fetches in parallel with individual safety
+            const [hnData, redditData, ghData] = await Promise.all([
+                // HN (Native API - Reliable)
+                fetch(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(name)}&hitsPerPage=5`).then(r => r.json()).catch(() => ({hits:[]})),
+                // Reddit (Proxy needed)
+                fetchWithRetry(`https://www.reddit.com/search.json?q=${encodeURIComponent(name)}&limit=5`),
+                // GitHub (Native API - Use domain name for accuracy like "ollama")
+                fetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(domain)}&sort=stars`).then(r => r.json()).catch(() => ({items:[]}))
+            ]);
+
+            const h = hnData.hits?.length || 0;
+            const r = redditData?.data?.children?.length || 0;
+            const g = ghData.items?.[0]?.stargazers_count || 0;
+
+            // Logic
+            let score = 2.0;
+            score += (h * 0.7);
+            score += (r * 0.5);
+            if(g > 0) score += 2.0 + Math.min(3.0, g / 1000);
+            if(domain.includes('.ai')) score += 0.8;
+
+            if(h === 0 && r === 0 && g === 0) score = Math.min(score, 2.9);
 
             return { r, h, g, pr: Math.min(9.9, score).toFixed(1) };
         }
@@ -163,19 +165,22 @@
         window.analyzeWebsite = async function() {
             const urlInput = document.getElementById('urlInput');
             const url = urlInput.value.trim();
-            if(!url.startsWith('http')) return alert("Enter full URL");
+            if(!url.startsWith('http')) return alert("Please enter a valid URL");
 
-            document.getElementById('btnLabel').innerText = "Scanning Signals...";
+            document.getElementById('btnLabel').innerText = "Deep Scanning...";
             document.getElementById('btnSpinner').classList.remove('hidden');
 
-            try {
-                const metaRes = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
-                const metaJson = await metaRes.json();
-                const docParsed = new DOMParser().parseFromString(metaJson.contents, 'text/html');
-                const title = (docParsed.querySelector('title')?.innerText || url.split('/')[2]).split('|')[0].trim();
-                const desc = docParsed.querySelector('meta[name="description"]')?.content?.substring(0, 100) || "Newly discovered AI tool.";
+            const domain = url.split('/')[2].replace('www.', '').split('.')[0];
 
-                const stats = await calculateDeepPR(title, url);
+            try {
+                // Get Metadata first
+                const metaRaw = await fetchWithRetry(url, false);
+                const docParsed = new DOMParser().parseFromString(metaRaw || '', 'text/html');
+                const title = (docParsed.querySelector('title')?.innerText || domain).split('|')[0].trim();
+                const desc = docParsed.querySelector('meta[name="description"]')?.content?.substring(0, 100) || "Explore this AI application.";
+
+                // Get Signals
+                const stats = await getStats(title, domain);
                 
                 window.tempAI = { 
                     url, title, description: desc, pr: stats.pr, 
@@ -183,26 +188,31 @@
                     votes: 1, metrics: { reddit: stats.r, hn: stats.h, github: stats.g } 
                 };
 
-                const prBadge = document.getElementById('sitePR');
-                prBadge.innerText = `PR ${stats.pr}`;
-                prBadge.className = `px-4 py-1 rounded-full font-black text-sm pr-badge ${getPRClass(stats.pr)}`;
-                
-                document.getElementById('siteTitle').innerText = title;
-                document.getElementById('siteDesc').innerText = desc;
-                document.getElementById('siteIcon').src = window.tempAI.icon;
-                document.getElementById('metricsVisual').innerHTML = `
-                    <div class="bg-orange-500/10 text-orange-400 text-[10px] font-bold px-3 py-1 rounded-lg border border-orange-500/20">Reddit: ${stats.r}</div>
-                    <div class="bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-3 py-1 rounded-lg border border-emerald-500/20">HackerN: ${stats.h}</div>
-                    <div class="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-3 py-1 rounded-lg border border-blue-500/20">GitHub: ${stats.g}</div>
-                `;
-                document.getElementById('previewCard').classList.remove('hidden');
+                updatePreview(window.tempAI);
             } catch (e) {
-                alert("Deep scan timed out. Listing with basic PR.");
+                alert("Analysis partially complete.");
             } finally {
                 document.getElementById('btnLabel').innerText = "Analyze & List";
                 document.getElementById('btnSpinner').classList.add('hidden');
             }
         };
+
+        function updatePreview(data) {
+            const card = document.getElementById('previewCard');
+            const prBadge = document.getElementById('sitePR');
+            prBadge.innerText = `PR ${data.pr}`;
+            prBadge.className = `px-4 py-1 rounded-full font-black text-sm ${getPRClass(data.pr)}`;
+            
+            document.getElementById('siteTitle').innerText = data.title;
+            document.getElementById('siteDesc').innerText = data.description;
+            document.getElementById('siteIcon').src = data.icon;
+            document.getElementById('metricsVisual').innerHTML = `
+                <div class="bg-orange-500/10 text-orange-400 text-[10px] font-bold px-3 py-1 rounded-lg border border-orange-500/20">Reddit: ${data.metrics.reddit}</div>
+                <div class="bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-3 py-1 rounded-lg border border-emerald-500/20">HackerN: ${data.metrics.hn}</div>
+                <div class="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-3 py-1 rounded-lg border border-blue-500/20">GitHub Stars: ${data.metrics.github}</div>
+            `;
+            card.classList.remove('hidden');
+        }
 
         function getPRClass(pr) {
             if(pr >= 8) return "bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 shadow-lg";
@@ -212,8 +222,6 @@
 
         window.confirmSubmission = async function() {
             await addDoc(collection(db, "league_sites"), window.tempAI);
-            
-            // Clean up
             document.getElementById('urlInput').value = '';
             document.getElementById('urlInput').focus();
             document.getElementById('previewCard').classList.add('hidden');
@@ -223,7 +231,7 @@
         window.vote = async function(id) {
             const key = `v_log_${new Date().getFullYear()}-W${Math.ceil(new Date().getDate()/7)}`;
             let log = JSON.parse(localStorage.getItem(key) || '[]');
-            if(log.length >= 3) return alert("Limit: 3 votes per week.");
+            if(log.length >= 3) return alert("Vote limit reached.");
             await updateDoc(doc(db, "league_sites", id), { votes: increment(1) });
             log.push(id); localStorage.setItem(key, JSON.stringify(log));
             loadIndex();
@@ -250,7 +258,8 @@
             renderTable(masterData);
             document.getElementById('loaderText').classList.add('hidden');
             const key = `v_log_${new Date().getFullYear()}-W${Math.ceil(new Date().getDate()/7)}`;
-            document.getElementById('votesLeft').innerText = 3 - JSON.parse(localStorage.getItem(key) || '[]').length;
+            const currentVotes = JSON.parse(localStorage.getItem(key) || '[]').length;
+            document.getElementById('votesLeft').innerText = 3 - currentVotes;
         };
 
         function renderTable(data) {
@@ -260,7 +269,7 @@
                 const rank = i + 1;
                 const rIcon = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `<span class="opacity-10">${rank}</span>`;
                 tbody.innerHTML += `
-                    <tr class="transition-colors">
+                    <tr>
                         <td class="p-6 font-black text-2xl">${rIcon}</td>
                         <td class="p-6">
                             <div class="flex items-center gap-4">
@@ -270,7 +279,7 @@
                                         <div class="font-bold text-white text-lg tracking-tight">${item.title}</div>
                                         <span class="text-[10px] font-black ${getPRClass(item.pr)} px-2 py-0.5 rounded-md whitespace-nowrap">PR ${item.pr || '2.0'}</span>
                                     </div>
-                                    <div class="text-[11px] text-slate-500 truncate max-w-[220px] italic opacity-80">${item.description}</div>
+                                    <div class="text-[11px] text-slate-500 truncate max-w-[200px] italic">${item.description}</div>
                                 </div>
                             </div>
                         </td>
@@ -283,7 +292,7 @@
                         </td>
                         <td class="p-6 text-center">
                             <div class="text-3xl font-black text-white tracking-tighter">${item.votes}</div>
-                            <div class="text-[8px] font-bold text-slate-600 uppercase">Pts</div>
+                            <div class="text-[8px] font-bold text-slate-600 uppercase tracking-widest">Points</div>
                         </td>
                         <td class="p-6 text-right space-x-2">
                             <button onclick="openBadgeModal('${item.title}', ${rank})" class="text-[10px] font-bold text-slate-600 hover:text-indigo-400 uppercase">Badge</button>
