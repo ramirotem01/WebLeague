@@ -23,10 +23,11 @@
 
     <div id="badgeModal" class="modal" onclick="closeModal()">
         <div class="glass p-8 rounded-3xl max-w-lg w-full" onclick="event.stopPropagation()">
-            <h3 class="text-2xl font-bold mb-2 text-white">PCS365 AI Badge</h3>
-            <div id="badgePreview" class="mb-4 flex justify-center"></div>
-            <code id="badgeCode" class="text-[10px] text-indigo-300 break-all block p-3 bg-white/5 rounded mb-6"></code>
-            <button onclick="copyBadgeCode()" class="w-full bg-indigo-600 py-3 rounded-xl font-bold uppercase">Copy HTML Code</button>
+            <h3 class="text-2xl font-bold mb-2 text-white italic uppercase tracking-tighter">Ranking Badge</h3>
+            <p class="text-slate-400 text-sm mb-6">Show off your rank on your website.</p>
+            <div id="badgePreview" class="mb-6 flex justify-center"></div>
+            <code id="badgeCode" class="text-[10px] text-indigo-300 break-all block p-4 bg-black/40 border border-white/5 rounded-xl mb-6"></code>
+            <button onclick="copyBadgeCode()" class="w-full bg-white text-black py-4 rounded-xl font-black uppercase tracking-widest hover:bg-indigo-400 transition-colors">Copy Embed Code</button>
         </div>
     </div>
 
@@ -45,24 +46,25 @@
     <header class="pt-20 pb-10 text-center px-4">
         <h1 class="text-6xl md:text-7xl font-extrabold tracking-tighter mb-6 italic uppercase">Global <span class="accent-text">AI Index</span></h1>
         <p class="text-slate-400 max-w-3xl mx-auto mb-10 text-lg font-medium leading-relaxed">
-            Discover and rank the best AI tools. Analysis based on community votes and live signals from GitHub, Reddit, and HackerNews. 
+            Discover and rank the best AI tools. Real-time analysis based on community votes and live signals from GitHub, Reddit, and HackerNews. 
         </p>
         
-        <div class="max-w-2xl mx-auto glass p-2 rounded-2xl flex flex-col md:flex-row gap-2 shadow-2xl mb-8 border-white/10">
+        <div class="max-w-2xl mx-auto glass p-2 rounded-2xl flex flex-col md:flex-row gap-2 shadow-2xl mb-4 border-white/10">
             <input type="url" id="urlInput" placeholder="Enter AI Tool URL (e.g., https://ollama.com)" class="flex-1 bg-transparent p-4 outline-none text-white font-medium placeholder:text-slate-600">
             <button onclick="analyzeWebsite()" id="mainBtn" class="btn-gradient px-10 py-4 rounded-xl font-bold flex items-center justify-center gap-3 active:scale-95 transition-all">
                 <span id="btnLabel">Analyze & List</span>
                 <div id="btnSpinner" class="loader hidden"></div>
             </button>
         </div>
+        <div id="scanLog" class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-8 h-4"></div>
 
         <div class="max-w-md mx-auto">
-            <input type="text" id="searchInput" oninput="filterTable()" placeholder="Search tools in the index..." class="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none focus:border-indigo-500 text-sm">
+            <input type="text" id="searchInput" oninput="filterTable()" placeholder="Search index..." class="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none focus:border-indigo-500 text-sm">
         </div>
     </header>
 
     <main class="max-w-6xl mx-auto px-4 pb-32">
-        <div id="previewCard" class="hidden glass rounded-3xl p-8 mb-8 border-indigo-500/40">
+        <div id="previewCard" class="hidden glass rounded-3xl p-8 mb-8 border-indigo-500/40 animate-in fade-in zoom-in duration-300">
             <div class="flex flex-col md:flex-row items-center justify-between gap-8">
                 <div class="flex items-center gap-6 text-left">
                     <img id="siteIcon" src="" class="w-20 h-20 rounded-2xl bg-white/10 p-2 border border-white/10">
@@ -86,7 +88,7 @@
                         <th class="p-6">Rank</th>
                         <th class="p-6">AI Application</th>
                         <th class="p-6">Social Signals</th>
-                        <th class="p-6 text-center">Community Score</th>
+                        <th class="p-6 text-center">Score</th>
                         <th class="p-6"></th>
                     </tr>
                 </thead>
@@ -131,12 +133,16 @@
         async function getDeepSignals(name, url) {
             const domain = url.split('/')[2].replace('www.', '').split('.')[0];
             const queryTarget = domain.length > 3 ? domain : name;
+            const log = document.getElementById('scanLog');
 
-            const [hn, reddit, gh] = await Promise.all([
-                fetch(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(queryTarget)}&hitsPerPage=5`).then(r => r.json()).catch(() => ({hits:[]})),
-                robustProxyFetch(`https://www.reddit.com/search.json?q=${encodeURIComponent(queryTarget)}&limit=5`),
-                fetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(queryTarget)}&sort=stars`).then(r => r.json()).catch(() => ({items:[]}))
-            ]);
+            log.innerText = "Querying HackerNews...";
+            const hn = await fetch(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(queryTarget)}&hitsPerPage=5`).then(r => r.json()).catch(() => ({hits:[]}));
+            
+            log.innerText = "Scanning Reddit Threads...";
+            const reddit = await robustProxyFetch(`https://www.reddit.com/search.json?q=${encodeURIComponent(queryTarget)}&limit=5`);
+            
+            log.innerText = "Checking GitHub Repositories...";
+            const gh = await fetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(queryTarget)}&sort=stars`).then(r => r.json()).catch(() => ({items:[]}));
 
             const hCount = hn.hits?.length || 0;
             const rData = (typeof reddit === 'string' ? JSON.parse(reddit) : reddit);
@@ -148,6 +154,9 @@
             if(gCount > 0) pr += 1.5 + Math.min(3.5, gCount / 700);
             if(url.includes('.ai')) pr += 0.8;
 
+            log.innerText = "Signals Finalized.";
+            setTimeout(() => log.innerText = "", 2000);
+
             return { h: hCount, r: rCount, g: gCount, pr: Math.min(9.9, pr).toFixed(1) };
         }
 
@@ -156,7 +165,7 @@
             const url = urlInput.value.trim();
             if(!url.startsWith('http')) return alert("Please enter a valid URL");
 
-            document.getElementById('btnLabel').innerText = "Scanning Signals...";
+            document.getElementById('btnLabel').innerText = "Deep Scanning...";
             document.getElementById('btnSpinner').classList.remove('hidden');
 
             try {
@@ -225,7 +234,7 @@
         };
 
         window.closeModal = () => document.getElementById('badgeModal').classList.remove('active');
-        window.copyBadgeCode = () => { navigator.clipboard.writeText(document.getElementById('badgeCode').innerText); alert("Badge Code Copied!"); };
+        window.copyBadgeCode = () => { navigator.clipboard.writeText(document.getElementById('badgeCode').innerText); alert("Embed code copied!"); };
 
         window.loadIndex = async function() {
             const q = query(collection(db, "league_sites"), orderBy("votes", "desc"), limit(100));
@@ -248,7 +257,7 @@
                         <td class="p-6 font-black text-2xl">${rIcon}</td>
                         <td class="p-6">
                             <div class="flex items-center gap-4">
-                                <img src="${item.icon}" class="w-12 h-12 rounded-xl bg-white/5 p-1 border border-white/5">
+                                <img src="${item.icon}" class="w-12 h-12 rounded-xl bg-white/5 p-1 border border-white/5 shadow-inner">
                                 <div>
                                     <div class="flex items-center gap-2 mb-0.5">
                                         <div class="font-bold text-white text-lg tracking-tight">${item.title}</div>
@@ -260,8 +269,8 @@
                         </td>
                         <td class="p-6">
                             <div class="flex flex-col gap-0.5 font-bold text-[9px] uppercase tracking-tighter whitespace-nowrap">
-                                <span class="text-orange-500/80">Reddit Search: ${item.metrics?.reddit || 0}</span>
-                                <span class="text-emerald-500/80">HackerNews: ${item.metrics?.hn || 0}</span>
+                                <span class="text-orange-500/80">Reddit: ${item.metrics?.reddit || 0}</span>
+                                <span class="text-emerald-500/80">HackerN: ${item.metrics?.hn || 0}</span>
                                 <span class="text-blue-500/80">GitHub Stars: ${item.metrics?.github || 0}</span>
                             </div>
                         </td>
@@ -270,8 +279,8 @@
                             <div class="text-[8px] font-bold text-slate-600 uppercase">Points</div>
                         </td>
                         <td class="p-6 text-right space-x-2">
-                            <button onclick="openBadgeModal('${item.title}', ${rank})" class="text-[10px] font-bold text-slate-600 hover:text-indigo-400">BADGE</button>
-                            <button onclick="vote('${item.id}')" class="bg-indigo-600/10 hover:bg-indigo-600 border border-indigo-500/20 text-indigo-400 hover:text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all shadow-lg active:scale-95">Vote</button>
+                            <button onclick="openBadgeModal('${item.title}', ${rank})" class="bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-300 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all">Badge</button>
+                            <button onclick="vote('${item.id}')" class="bg-white hover:bg-slate-200 border border-white/10 text-black px-6 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all shadow-lg active:scale-95">Vote</button>
                         </td>
                     </tr>`;
             });
