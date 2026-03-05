@@ -46,7 +46,7 @@
         <h1 class="text-6xl md:text-7xl font-extrabold tracking-tighter mb-6 italic uppercase">Global <span class="accent-text">AI Index</span></h1>
         <p class="text-slate-400 max-w-3xl mx-auto mb-10 text-lg font-medium leading-relaxed">
             The community-driven leaderboard for AI applications. <br>
-            Analyzed via deep network signals and social authority.
+            Multi-signal analysis including Product Hunt, Wikipedia, and Domain Authority.
         </p>
         
         <div class="max-w-2xl mx-auto glass p-2 rounded-2xl flex flex-col md:flex-row gap-2 shadow-2xl mb-4 border-white/10">
@@ -134,30 +134,46 @@
             const domain = url.split('/')[2].replace('www.', '').split('.')[0];
             const log = document.getElementById('scanLog');
             
-            log.innerText = "Querying Network Authority...";
+            log.innerText = "Analyzing Authority & History...";
             
-            const [hn, reddit, gh, wiki] = await Promise.all([
+            const requests = [
                 fetch(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(domain)}&hitsPerPage=5`).then(r => r.json()).catch(() => ({hits:[]})),
                 robustProxyFetch(`https://www.reddit.com/search.json?q=${encodeURIComponent(domain)}&limit=5`),
                 fetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(domain)}&sort=stars`).then(r => r.json()).catch(() => ({items:[]})),
-                fetch(`https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&list=search&srsearch=${encodeURIComponent(domain)}`).then(r => r.json()).catch(() => ({query:{search:[]}}))
-            ]);
+                fetch(`https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&list=search&srsearch=${encodeURIComponent(domain)}`).then(r => r.json()).catch(() => ({query:{search:[]}})),
+                robustProxyFetch(`https://www.producthunt.com/search?q=${encodeURIComponent(domain)}`) // PH Signal
+            ];
 
+            const [hn, reddit, gh, wiki, phRaw] = await Promise.all(requests);
+
+            let pr = 1.9;
+            
+            // 1. SSL/Security Header Bonus
+            if(url.startsWith('https')) pr += 0.3;
+
+            // 2. Wikipedia Authority Bonus
+            if(wiki.query?.search?.length > 0) pr += 1.2;
+
+            // 3. Product Hunt Signal
+            if(phRaw && phRaw.includes('producthunt.com/posts')) pr += 1.0;
+
+            // 4. GitHub & Development Signal
+            const gCount = gh.items?.[0]?.stargazers_count || 0;
+            if(gCount > 0) {
+                pr += 1.5 + Math.min(3.5, gCount / 700);
+                // Age Heuristic: If it has stars, it likely has some age
+                pr += 0.2; 
+            }
+
+            // 5. Social Presence (HN & Reddit)
             const hCount = hn.hits?.length || 0;
             const rData = (typeof reddit === 'string' ? JSON.parse(reddit) : reddit);
             const rCount = rData?.data?.children?.length || 0;
-            const gCount = gh.items?.[0]?.stargazers_count || 0;
-            const wCount = wiki.query?.search?.length || 0;
-
-            // Advanced PR Calculation
-            let pr = 1.9;
+            
             pr += (hCount * 0.8) + (rCount * 0.6);
-            if(gCount > 0) pr += 1.5 + Math.min(3.5, gCount / 700);
-            if(wCount > 0) pr += 1.2; // Wikipedia Authority Bonus
-            if(url.startsWith('https')) pr += 0.3; // Security Bonus
             if(url.includes('.ai')) pr += 0.5;
 
-            log.innerText = "Signals Finalized.";
+            log.innerText = "Deep Scan Completed.";
             setTimeout(() => log.innerText = "", 2000);
 
             return { h: hCount, r: rCount, g: gCount, pr: Math.min(9.9, pr).toFixed(1) };
