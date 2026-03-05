@@ -1,343 +1,280 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="en">
 <head>
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-
-  <meta name="description" content="pcs365: An AI-powered habit tracker and task management web app. Optimize your daily routine with deep AI insights, habit analysis, and goal tracking for better results.">
-  <meta name="keywords" content="habit tracker, task management, AI productivity, daily routines, goal setter, AI insights, productivity app, habit analysis, personal growth, pcs365">
-
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#3498db">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/4345/4345517.png">
-  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title id="page-title">Habit Tracker – התחברות</title>
-  
-  <link rel="stylesheet" href="style.css?v=1.1" />
-  
-  <style>
-    /* --- עיצוב תפריט המבורגר (מתוקן לוגית) --- */
-    .menu-icon {
-      position: fixed;
-      top: 20px;
-      inset-inline-end: 20px;
-      font-size: 30px;
-      cursor: pointer;
-      z-index: 1001;
-      color: #34495e;
-      user-select: none;
-    }
-
-    .sidebar {
-      height: 100%;
-      width: 0;
-      position: fixed;
-      z-index: 1000;
-      top: 0;
-      inset-inline-end: 0;
-      background-color: #fff;
-      overflow-x: hidden;
-      transition: 0.4s;
-      padding-top: 80px;
-      box-shadow: -2px 0 10px rgba(0,0,0,0.1);
-      text-align: start;
-    }
-
-    .sidebar a {
-      padding: 15px 25px;
-      text-decoration: none;
-      font-size: 1.2em;
-      color: #2c3e50;
-      display: block;
-      transition: 0.3s;
-      border-bottom: 1px solid #f5f5f5;
-    }
-
-    .sidebar a:hover {
-      background-color: #f8f9fa;
-      color: #3498db;
-    }
-
-    .overlay {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.3);
-      z-index: 999;
-    }
-
-    .login-container {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      margin-top: 20px;
-    }
-
-    .login-card {
-      padding: 30px !important;
-    }
-
-    h1 {
-      margin-bottom: 10px;
-      font-size: 1.8em;
-      text-align: center;
-    }
-
-    input {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      box-sizing: border-box;
-      text-align: start;
-    }
-
-    .action-btn {
-      background-color: #3498db;
-      color: white;
-      border: none;
-      padding: 14px;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 1.1em;
-      transition: background 0.3s;
-      margin-top: 10px;
-    }
-
-    .action-btn:hover {
-      background-color: #2980b9;
-    }
-
-    .secondary-btn {
-      background: none;
-      border: none;
-      color: #34495e;
-      padding: 8px 15px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 0.9em;
-      font-weight: normal;
-      transition: all 0.3s ease;
-      display: inline-block;
-      width: fit-content;
-      margin: 5px auto;
-      text-decoration: none;
-    }
-
-    .secondary-btn:hover {
-      background-color: #f5f6f7;
-      color: #000;
-    }
-
-    /* --- החזרת עיצוב הכפתור המקורי שלך --- */
-    .info-toggle-btn {
-      background: none;
-      border: 1px solid #eee;
-      color: #7f8c8d; /* הצבע האפור המקורי */
-      padding: 8px 18px;
-      border-radius: 20px;
-      cursor: pointer;
-      margin: 20px auto 10px auto;
-      font-weight: normal;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.3s ease;
-    }
-
-    .info-toggle-btn:hover {
-      /* הכפתור נשאר בדיוק באותו צבע רק עם שינוי קל של הגבול אם תרצה, או כלום */
-      border-color: #ddd;
-    }
-
-    .app-info-content {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.4s ease-out;
-      text-align: start;
-      font-size: 0.9em;
-      line-height: 1.6;
-      color: #333;
-    }
-
-    .app-info-content.open {
-      max-height: 1000px;
-      margin-top: 15px;
-      padding: 15px;
-      border-top: 1px solid #eee;
-    }
-
-    .app-info-content ul { padding-inline-start: 20px; list-style: disc; margin: 10px 0; }
-    .tagline { text-align: center; display: block; margin-top: 10px; color: #2c3e50; font-weight: bold; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCS365 | AI Tools Index & League</title>
     
-    #captcha-container { display: none; margin: 10px 0; transform: scale(0.9); }
-    #message { min-height: 20px; text-align: center; font-size: 0.9em; }
-  </style>
-</head>
-<body>
-
-  <div id="sideMenu" class="sidebar">
-    <a href="about.html" id="nav-about">מידע על האפליקציה</a>
-    <a href="blog.html" id="nav-blog">בלוג</a>
-    <a href="terms.html" id="nav-terms">תנאי שימוש</a>
-  </div>
-  
-  <div id="overlay" class="overlay" onclick="closeMenu()"></div>
-
-  <div class="menu-icon" onclick="toggleMenu()">☰</div>
-
-  <div class="app login-app">
-    <h1 id="ui-title">🔐 התחברות</h1>
-
-    <div class="card login-card">
-      <p id="ui-desc" style="text-align: center; color: #666; margin-bottom: 20px;">הזן פרטים כדי להמשיך לעקוב אחר ההרגלים שלך</p>
-      
-      <div class="login-container">
-        <input type="email" id="email" placeholder="כתובת אימייל" />
-        <input type="password" id="password" placeholder="סיסמה" />
-
-        <div id="captcha-container">
-          <div class="g-recaptcha" data-sitekey="YOUR_SITE_KEY_HERE"></div>
-        </div>
-
-        <button id="loginBtn" class="action-btn">התחבר למערכת</button>
+    <meta name="description" content="The official PCS365 AI Index. Discover, rank, and submit the world's best AI applications.">
+    <meta name="keywords" content="AI Index, AI Directory, PCS365, Artificial Intelligence, AI Tools League">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #05070a; color: #e2e8f0; scroll-behavior: smooth; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); }
+        .hero-glow { background: radial-gradient(circle at 50% -20%, #312e81, #05070a); }
+        .accent-text { background: linear-gradient(90deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
-        <div style="text-align: center; display: flex; flex-direction: column; gap: 5px;">
-            <button id="goToRegisterBtn" class="secondary-btn" onclick="window.location.href='register.html'">רשום משתמש חדש</button>
-            <button id="forgotPasswordLink" class="secondary-btn">שכחתי סיסמה? לחץ לאיפוס</button>
-            <a href="terms.html" class="secondary-btn" id="ui-terms">תנאי שימוש ותקנון</a>
+        /* White Spinner */
+        .loader {
+            width: 18px; height: 18px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-top: 2px solid #ffffff; /* לבן בוהק */
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .btn-gradient { background: linear-gradient(90deg, #4f46e5, #7c3aed); transition: all 0.3s ease; }
+        .btn-gradient:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3); }
+        .btn-gradient:active { transform: translateY(0); }
+        
+        .pr-badge { background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); color: #818cf8; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 800; }
+    </style>
+</head>
+<body class="min-h-screen hero-glow">
+
+    <nav class="p-6 border-b border-white/5 bg-black/20 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-extrabold text-white shadow-lg shadow-indigo-500/20">AI</div>
+                <span class="text-xl font-extrabold tracking-tight uppercase">PCS365 <span class="text-indigo-400">Index</span></span>
+            </div>
+            <div class="bg-indigo-500/10 border border-indigo-500/20 px-4 py-2 rounded-full flex items-center gap-3">
+                <span class="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">Weekly Votes Left: <span id="votesLeft" class="text-white text-xs">3</span></span>
+            </div>
+        </div>
+    </nav>
+
+    <header class="py-24 text-center px-4">
+        <h1 class="text-6xl md:text-7xl font-extrabold tracking-tighter mb-6">GLOBAL <span class="accent-text">AI</span> DIRECTORY</h1>
+        <p class="text-slate-400 max-w-2xl mx-auto mb-12 text-lg leading-relaxed">Submit your AI tool to the PCS365 ecosystem. Reach the top of the leaderboard and gain exposure to the AI community.</p>
+        
+        <div class="max-w-2xl mx-auto glass p-2 rounded-2xl flex flex-col md:flex-row gap-2 shadow-2xl">
+            <input type="url" id="urlInput" placeholder="Paste AI App URL (https://...)" 
+                class="flex-1 bg-transparent p-4 outline-none text-white font-medium placeholder:text-slate-600">
+            <button onclick="analyzeWebsite()" id="mainBtn" class="btn-gradient px-10 py-4 rounded-xl font-bold flex items-center justify-center gap-3">
+                <span id="btnLabel">Analyze & List</span>
+                <div id="btnSpinner" class="loader hidden"></div>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 pb-32">
+        
+        <div id="previewCard" class="hidden glass rounded-3xl p-8 mb-16 border-indigo-500/40 animate-pulse-once">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-8 text-left">
+                <div class="flex items-center gap-6">
+                    <div class="relative">
+                        <img id="siteIcon" src="" class="w-20 h-20 rounded-2xl bg-white/5 p-2 border border-white/10">
+                        <div class="absolute -top-2 -right-2 bg-indigo-500 text-[8px] font-black px-2 py-1 rounded-full">NEW</div>
+                    </div>
+                    <div class="text-left">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.3em]">Metadata Captured</span>
+                            <span id="previewPR" class="pr-badge">PR 0.0</span>
+                        </div>
+                        <h2 id="siteTitle" class="text-3xl font-bold text-white tracking-tight leading-tight"></h2>
+                        <p id="siteDescription" class="text-slate-400 text-sm mt-1 mb-2 max-w-md"></p>
+                        <p id="siteUrlDisplay" class="text-slate-500 font-mono text-xs"></p>
+                    </div>
+                </div>
+                <button onclick="confirmSubmission()" class="bg-white text-black hover:bg-slate-200 w-full md:w-auto px-12 py-5 rounded-2xl font-black uppercase tracking-widest transition-all">
+                    Confirm Listing
+                </button>
+            </div>
         </div>
 
-        <p id="message" style="color:red;"></p>
-
-        <button class="info-toggle-btn" id="infoBtn" onclick="toggleInfo()">
-          <span>ℹ️</span>
-          <span id="btnText">למידע על האפליקציה</span>
-        </button>
-
-        <div id="infoContent" class="app-info-content">
-          <h3 id="info-h3">עקביות קטנה. שינוי גדול.</h3>
-          <p id="info-p1"><strong>Habit Tracker</strong> אפליקציה חינמית שעוזרת לך להתקדם צעד־צעד, בלי עומס ובלי רעש.</p>
-          <p><strong id="info-q">מה עושים בה?</strong></p>
-          <ul id="info-list">
-            <li>✔ מגדירים הרגלים אישיים</li>
-            <li>✔ מסמנים ביצוע יומי בקליק</li>
-            <li>✔ עוקבים אחרי ההתקדמות</li>
-            <li>✔ מייצר הרגלים ומשימות באמצעות AI</li>
-          </ul>
-          <span class="tagline" id="info-tagline">כי שינוי גדול מתחיל בהרגל קטן.</span>
+        <div class="glass rounded-3xl overflow-hidden border border-white/5 shadow-2xl">
+            <div class="p-6 border-b border-white/5 bg-white/5 flex justify-between items-center">
+                <h3 class="font-bold uppercase text-[10px] tracking-[0.3em] text-slate-400">Weekly Leaderboard</h3>
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                    <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Live Updates</span>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <tbody id="leaderboardBody" class="divide-y divide-white/5">
+                    </tbody>
+                </table>
+            </div>
+            <div id="loaderText" class="p-20 text-center text-slate-600 text-xs font-bold uppercase tracking-widest animate-pulse">
+                Syncing with Database...
+            </div>
         </div>
-      </div>
-    </div>
-  </div>
+    </main>
 
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-  <script src="firebase.js?v=1.1"></script>
-  <script src="login.js?v=1.1"></script>
-  <script>
-    // --- Service Worker Registration ---
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker
-          .register("pwabuilder-sw.js")
-          .then((reg) => console.log("Service Worker registered", reg))
-          .catch((err) => console.error("Service Worker failed", err));
-      });
-    }
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, limit, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    const uiTranslations = {
-      he: {
-        dir: "rtl",
-        title: "🔐 התחברות",
-        desc: "הזן פרטים כדי להמשיך לעקוב אחר ההרגלים שלך",
-        email: "כתובת אימייל",
-        pass: "סיסמה",
-        loginBtn: "התחבר למערכת",
-        registerBtn: "רשום משתמש חדש",
-        forgot: "שכחתי סיסמה? לחץ לאיפוס",
-        terms: "תנאי שימוש ותקנון",
-        infoShow: "למידע על האפליקציה",
-        infoHide: "סגור מידע",
-        nav: ["מידע על האפליקציה", "בלוג", "תנאי שימוש"]
-      },
-      en: {
-        dir: "ltr",
-        title: "🔐 Login",
-        desc: "Enter details to continue tracking your habits",
-        email: "Email Address",
-        pass: "Password",
-        loginBtn: "Login to System",
-        registerBtn: "Register New User",
-        forgot: "Forgot password? Click to reset",
-        terms: "Terms & Conditions",
-        infoShow: "About the App",
-        infoHide: "Close Info",
-        nav: ["About", "Blog", "Terms"]
-      }
-    };
+        const firebaseConfig = {
+            apiKey: "AIzaSyBs8x4SVn65rzWrQJxbwxpOj2XvoNFMhBI",
+            authDomain: "webleague-7b833.firebaseapp.com",
+            projectId: "webleague-7b833",
+            storageBucket: "webleague-7b833.firebasestorage.app",
+            messagingSenderId: "689675956792",
+            appId: "1:689675956792:web:eeaeecd758e49dc9506ccd"
+        };
 
-    // Default to 'en' if the language is not Hebrew
-    const userLang = navigator.language.startsWith('he') ? 'he' : 'en';
-    const lang = uiTranslations[userLang];
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-    document.documentElement.lang = userLang;
-    document.documentElement.dir = lang.dir;
-    document.getElementById('ui-title').innerText = lang.title;
-    document.getElementById('ui-desc').innerText = lang.desc;
-    document.getElementById('email').placeholder = lang.email;
-    document.getElementById('password').placeholder = lang.pass;
-    document.getElementById('loginBtn').innerText = lang.loginBtn;
-    document.getElementById('goToRegisterBtn').innerText = lang.registerBtn;
-    document.getElementById('forgotPasswordLink').innerText = lang.forgot;
-    document.getElementById('ui-terms').innerText = lang.terms;
-    document.getElementById('btnText').innerText = lang.infoShow;
+        // --- PR Calculation Logic ---
+        function calculatePR(url, title, desc) {
+            let score = 5.0;
+            if (url.includes('.ai')) score += 2.0;
+            if (desc.length > 40) score += 1.5;
+            if (url.includes('app')) score += 0.5;
+            return Math.min(9.9, score).toFixed(1);
+        }
 
-    const navLinks = document.querySelectorAll('#sideMenu a');
-    lang.nav.forEach((text, i) => navLinks[i].innerText = text);
+        function getWeekKey() {
+            const d = new Date();
+            const year = d.getFullYear();
+            const start = new Date(year, 0, 1);
+            const week = Math.ceil((((d - start) / 86400000) + start.getDay() + 1) / 7);
+            return `${year}-W${week}`;
+        }
 
-    if (userLang === 'en') {
-        document.getElementById('info-h3').innerText = "Small consistency. Big change.";
-        document.getElementById('info-p1').innerHTML = "<strong>Habit Tracker</strong> is a free app that helps you progress step-by-step.";
-        document.getElementById('info-q').innerText = "What can you do?";
-        document.getElementById('info-tagline').innerText = "Because big change starts with a small habit.";
-        document.getElementById('info-list').innerHTML = `
-            <li>✔ Set personal habits</li>
-            <li>✔ One-click daily tracking</li>
-            <li>✔ Monitor progress</li>
-            <li>✔ AI-powered habit generation</li>`;
-    }
+        function refreshUI() {
+            const key = getWeekKey();
+            const log = JSON.parse(localStorage.getItem(`v_log_${key}`) || '[]');
+            document.getElementById('votesLeft').innerText = Math.max(0, 3 - log.length);
+        }
 
-    function toggleMenu() {
-      const menu = document.getElementById("sideMenu");
-      const overlay = document.getElementById("overlay");
-      if (menu.style.width === "250px") {
-        closeMenu();
-      } else {
-        menu.style.width = "250px";
-        overlay.style.display = "block";
-      }
-    }
+        window.analyzeWebsite = async function() {
+            const url = document.getElementById('urlInput').value.trim();
+            const btnLabel = document.getElementById('btnLabel');
+            const btnSpinner = document.getElementById('btnSpinner');
 
-    function closeMenu() {
-      document.getElementById("sideMenu").style.width = "0";
-      document.getElementById("overlay").style.display = "none";
-    }
+            if(!url.startsWith('http')) return alert("Enter valid URL (https://)");
 
-    function toggleInfo() {
-      const content = document.getElementById('infoContent');
-      const btnText = document.getElementById('btnText');
-      content.classList.toggle('open');
-      btnText.innerText = content.classList.contains('open') ? lang.infoHide : lang.infoShow;
-    }
-  </script>
+            btnLabel.innerText = "Processing...";
+            btnSpinner.classList.remove('hidden');
+
+            try {
+                const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+                const data = await res.json();
+                const docParsed = new DOMParser().parseFromString(data.contents, 'text/html');
+                
+                const siteTitle = docParsed.querySelector('title')?.innerText || url.split('/')[2];
+                const siteDesc = docParsed.querySelector('meta[name="description"]')?.content || 
+                                 docParsed.querySelector('meta[property="og:description"]')?.content || 
+                                 "Discover this innovative AI tool on PCS365.";
+                const siteIcon = `https://www.google.com/s2/favicons?sz=128&domain=${url}`;
+                const pr = calculatePR(url, siteTitle, siteDesc);
+
+                window.tempAI = {
+                    url: url,
+                    title: siteTitle.split('|')[0].trim().substring(0, 50),
+                    description: siteDesc.substring(0, 120),
+                    pr: pr,
+                    icon: siteIcon,
+                    votes: 1
+                };
+
+                document.getElementById('siteTitle').innerText = window.tempAI.title;
+                document.getElementById('siteDescription').innerText = window.tempAI.description;
+                document.getElementById('previewPR').innerText = `PR ${pr}`;
+                document.getElementById('siteIcon').src = window.tempAI.icon;
+                document.getElementById('siteUrlDisplay').innerText = url;
+                document.getElementById('previewCard').classList.remove('hidden');
+
+            } catch(e) {
+                const domain = url.split('/')[2];
+                window.tempAI = {
+                    url: url,
+                    title: domain.charAt(0).toUpperCase() + domain.slice(1),
+                    description: "AI application listing",
+                    pr: "4.0",
+                    icon: `https://www.google.com/s2/favicons?sz=128&domain=${url}`,
+                    votes: 1
+                };
+                document.getElementById('siteTitle').innerText = window.tempAI.title;
+                document.getElementById('siteDescription').innerText = window.tempAI.description;
+                document.getElementById('previewPR').innerText = `PR 4.0`;
+                document.getElementById('siteIcon').src = window.tempAI.icon;
+                document.getElementById('siteUrlDisplay').innerText = url;
+                document.getElementById('previewCard').classList.remove('hidden');
+            } finally {
+                btnLabel.innerText = "Analyze & List";
+                btnSpinner.classList.add('hidden');
+            }
+        };
+
+        window.confirmSubmission = async function() {
+            const sitesRef = collection(db, "league_sites");
+            const q = query(sitesRef, where("url", "==", window.tempAI.url));
+            const snap = await getDocs(q);
+            
+            if(!snap.empty) return alert("AI Tool already listed!");
+
+            await addDoc(sitesRef, window.tempAI);
+            document.getElementById('previewCard').classList.add('hidden');
+            document.getElementById('urlInput').value = '';
+            loadIndex();
+        };
+
+        window.vote = async function(id) {
+            const key = getWeekKey();
+            let log = JSON.parse(localStorage.getItem(`v_log_${key}`) || '[]');
+
+            if(log.length >= 3) return alert("Weekly Limit: 3 votes per week allowed.");
+
+            try {
+                await updateDoc(doc(db, "league_sites", id), { votes: increment(1) });
+                log.push(id);
+                localStorage.setItem(`v_log_${key}`, JSON.stringify(log));
+                refreshUI();
+                loadIndex();
+            } catch(e) { console.error(e); }
+        };
+
+        window.loadIndex = async function() {
+            const q = query(collection(db, "league_sites"), orderBy("votes", "desc"), limit(100));
+            const snap = await getDocs(q);
+            const tbody = document.getElementById('leaderboardBody');
+            tbody.innerHTML = '';
+            document.getElementById('loaderText').classList.add('hidden');
+
+            let r = 1;
+            snap.forEach(d => {
+                const item = d.data();
+                const rankDisplay = r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : `<span class="opacity-20">${r}</span>`;
+                tbody.innerHTML += `
+                    <tr class="hover:bg-white/[0.02] group transition-all">
+                        <td class="p-8 font-extrabold text-2xl">${rankDisplay}</td>
+                        <td class="p-8">
+                            <div class="flex items-center gap-4">
+                                <img src="${item.icon}" class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 p-1 group-hover:scale-110 transition-transform">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <div class="font-bold text-white text-lg">${item.title}</div>
+                                        <span class="text-[9px] font-black text-indigo-400 opacity-60">PR ${item.pr || '5.0'}</span>
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 max-w-sm truncate mb-1">${item.description || ''}</div>
+                                    <div class="text-[9px] text-indigo-400 font-mono opacity-40">${item.url}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="p-8 text-center">
+                            <div class="text-2xl font-black text-white">${item.votes}</div>
+                            <div class="text-[8px] font-bold text-slate-600 uppercase tracking-widest">Points</div>
+                        </td>
+                        <td class="p-8 text-right">
+                            <button onclick="vote('${d.id}')" class="bg-indigo-500/10 hover:bg-indigo-600 border border-indigo-500/20 text-indigo-400 hover:text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase transition-all">Vote</button>
+                        </td>
+                    </tr>`;
+                r++;
+            });
+        };
+
+        refreshUI();
+        loadIndex();
+    </script>
 </body>
 </html>
