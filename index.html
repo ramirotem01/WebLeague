@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PCS365 | Weekly AI Leaderboard</title>
+    <title>pcs365 | Weekly AI Leaderboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     
@@ -17,6 +17,7 @@
         .btn-gradient { background: linear-gradient(90deg, #4f46e5, #7c3aed); transition: all 0.3s ease; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
         .modal.active { display: flex; }
+        .hero-title { padding-right: 0.15em; }
     </style>
 </head>
 <body class="min-h-screen hero-glow">
@@ -34,7 +35,7 @@
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-extrabold text-white shadow-lg">AI</div>
-                <span class="text-xl font-extrabold tracking-tight uppercase">pcs365<span class="text-indigo-400">.co.il</span></span>
+                <span class="text-xl font-extrabold tracking-tight uppercase">pcs365</span>
             </div>
             <div class="bg-indigo-500/10 border border-indigo-500/20 px-4 py-2 rounded-full font-bold text-indigo-300 text-[10px] tracking-widest">
                 WEEKLY VOTES LEFT: <span id="votesLeft" class="text-white text-xs">3</span>
@@ -43,7 +44,9 @@
     </nav>
 
     <header class="pt-20 pb-10 text-center px-4">
-        <h1 class="text-6xl md:text-7xl font-extrabold tracking-tighter mb-6 italic uppercase">Global <span class="accent-text">AI Index</span></h1>
+        <h1 class="hero-title text-6xl md:text-7xl font-extrabold tracking-tighter mb-6 italic uppercase">
+            Global <span class="accent-text">AI Index</span>
+        </h1>
         <p class="text-slate-400 max-w-3xl mx-auto mb-10 text-lg font-medium leading-relaxed">
             Community-driven voting for the best AI tools of the week. <br>
             Analyzed via Product Hunt, GitHub, and social authority signals (PR).
@@ -94,7 +97,7 @@
                 </thead>
                 <tbody id="leaderboardBody" class="divide-y divide-white/5"></tbody>
             </table>
-            <div id="loaderText" class="p-20 text-center text-slate-600 text-xs font-bold uppercase tracking-widest animate-pulse">Syncing with PCS365 Index...</div>
+            <div id="loaderText" class="p-20 text-center text-slate-600 text-xs font-bold uppercase tracking-widest animate-pulse">Syncing with pcs365 Index...</div>
         </div>
     </main>
 
@@ -124,17 +127,16 @@
                 try {
                     const r = await fetch(p, { signal: AbortSignal.timeout(5000) });
                     const d = await r.json();
-                    return d.contents || d;
+                    const content = d.contents || d;
+                    if(content && content.length > 100) return content;
                 } catch(e) {}
             }
             return null;
         }
 
-        async function getDeepSignals(name, url) {
-            const domain = url.split('/')[2].replace('www.', '').split('.')[0];
+        async function getDeepSignals(domain, url) {
             const log = document.getElementById('scanLog');
-            
-            log.innerText = "Analyzing Authority & History...";
+            log.innerText = "Analyzing Authority & Signals...";
             
             const requests = [
                 fetch(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(domain)}&hitsPerPage=3`).then(r => r.json()).catch(() => ({hits:[]})),
@@ -146,9 +148,7 @@
 
             const [hn, reddit, gh, wiki, phRaw] = await Promise.all(requests);
 
-            // STRICT CALCULATION (Weighted PR)
             let pr = 1.0; 
-            
             if(wiki.query?.search?.length > 0) pr += 1.8;
             if(phRaw && phRaw.includes('producthunt.com/posts')) pr += 1.2;
 
@@ -156,13 +156,15 @@
             if(gCount > 10) pr += Math.min(3.0, gCount / 1000); 
 
             const hCount = hn.hits?.length || 0;
-            const rData = (typeof reddit === 'string' ? JSON.parse(reddit) : reddit);
-            const rCount = rData?.data?.children?.length || 0;
+            let rCount = 0;
+            try {
+                const rData = (typeof reddit === 'string' ? JSON.parse(reddit) : reddit);
+                rCount = rData?.data?.children?.length || 0;
+            } catch(e) {}
             
             pr += (hCount * 0.4) + (rCount * 0.2);
-
             if(url.startsWith('https')) pr += 0.2;
-            if(url.includes('.ai') || url.includes('.io')) pr += 0.3;
+            if(url.includes('.ai')) pr += 0.3;
 
             log.innerText = "Deep Scan Completed.";
             setTimeout(() => log.innerText = "", 2000);
@@ -172,33 +174,48 @@
 
         window.analyzeWebsite = async function() {
             const urlInput = document.getElementById('urlInput');
-            const url = urlInput.value.trim();
-            if(!url.startsWith('http')) return alert("Enter valid URL");
+            let url = urlInput.value.trim();
+            if(!url) return;
+            if(!url.startsWith('http')) url = 'https://' + url;
 
-            document.getElementById('btnLabel').innerText = "Analyzing...";
+            document.getElementById('btnLabel').innerText = "Scanning...";
             document.getElementById('btnSpinner').classList.remove('hidden');
 
             try {
                 const raw = await robustProxyFetch(url);
-                const docParsed = new DOMParser().parseFromString(raw || '', 'text/html');
-                const title = (docParsed.querySelector('title')?.innerText || 
-                               docParsed.querySelector('meta[property="og:title"]')?.content || 
-                               url.split('/')[2]).split('|')[0].trim();
-                
-                const metaDesc = docParsed.querySelector('meta[name="description"]')?.content || 
-                                 docParsed.querySelector('meta[property="og:description"]')?.content;
-                
-                const desc = metaDesc ? metaDesc.substring(0, 110) + '...' : "An innovative AI application discovered and analyzed by the PCS365 community.";
+                const domainName = url.split('/')[2].replace('www.', '').split('.')[0];
+                let finalTitle = domainName.charAt(0).toUpperCase() + domainName.slice(1);
+                let finalDesc = `A professional AI platform specializing in ${domainName} solutions...`;
 
-                const s = await getDeepSignals(title, url);
+                if (raw) {
+                    const docParsed = new DOMParser().parseFromString(raw, 'text/html');
+                    
+                    const metaTitle = docParsed.querySelector('title')?.innerText || 
+                                     docParsed.querySelector('meta[property="og:title"]')?.content || 
+                                     domainName;
+                    finalTitle = metaTitle.split('|')[0].split('-')[0].trim();
+
+                    const metaDesc = docParsed.querySelector('meta[name="description"]')?.content || 
+                                     docParsed.querySelector('meta[property="og:description"]')?.content || 
+                                     docParsed.querySelector('meta[name="twitter:description"]')?.content ||
+                                     docParsed.querySelector('h1')?.innerText ||
+                                     docParsed.querySelector('p')?.innerText;
+
+                    if(metaDesc && metaDesc.length > 10) {
+                        finalDesc = metaDesc.trim().substring(0, 150).replace(/\s+/g, ' ') + "...";
+                    }
+                }
+
+                const s = await getDeepSignals(domainName, url);
+                
                 window.tempAI = { 
-                    url, title, description: desc, pr: s.pr, 
+                    url, title: finalTitle, description: finalDesc, pr: s.pr, 
                     icon: `https://www.google.com/s2/favicons?sz=128&domain=${url}`, 
                     votes: 1, metrics: { reddit: s.r, hn: s.h, github: s.g } 
                 };
 
                 updatePreview(window.tempAI);
-            } catch (e) { alert("Analysis failed."); }
+            } catch (e) { alert("Analysis timed out. Please try again."); }
             finally { 
                 document.getElementById('btnLabel').innerText = "Analyze & List";
                 document.getElementById('btnSpinner').classList.add('hidden');
@@ -245,7 +262,7 @@
             const code = `<div style="padding:20px; background:#05070a; border:1px solid #4f46e5; border-radius:15px; color:white; text-align:center; font-family:sans-serif; width:220px;">
                 <div style="font-size:10px; color:#818cf8; font-weight:bold; letter-spacing:2px;">RANKED #${rank}</div>
                 <div style="font-size:18px; font-weight:800; margin:10px 0;">${title}</div>
-                <div style="font-size:10px; opacity:0.5;">PCS365 AI INDEX</div>
+                <div style="font-size:10px; opacity:0.5;">pcs365 AI INDEX</div>
             </div>`;
             document.getElementById('badgePreview').innerHTML = code;
             document.getElementById('badgeCode').innerText = code;
@@ -288,8 +305,8 @@
                         </td>
                         <td class="p-6">
                             <div class="flex flex-col gap-0.5 font-bold text-[9px] uppercase tracking-tighter whitespace-nowrap">
-                                <span class="text-orange-500/80">Reddit Impact: ${item.metrics?.reddit || 0}</span>
-                                <span class="text-emerald-500/80">HackerN Feed: ${item.metrics?.hn || 0}</span>
+                                <span class="text-orange-500/80">Reddit: ${item.metrics?.reddit || 0}</span>
+                                <span class="text-emerald-500/80">HackerN: ${item.metrics?.hn || 0}</span>
                                 <span class="text-blue-500/80">GitHub Stars: ${item.metrics?.github || 0}</span>
                             </div>
                         </td>
