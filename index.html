@@ -6,7 +6,6 @@
     <title>pcs365 | AI Global Index</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
-    
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5255988903908485" crossorigin="anonymous"></script>
 
     <style>
@@ -20,6 +19,8 @@
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
         .modal.active { display: flex; }
         .btn-loading { opacity: 0.4; pointer-events: none; }
+        .highlight-row { animation: highlight 2s ease-out; }
+        @keyframes highlight { 0% { background: rgba(99, 102, 241, 0.2); } 100% { background: transparent; } }
         
         @media (max-width: 768px) {
             .hide-mobile { display: none; }
@@ -194,7 +195,9 @@
                     } catch(e) { markSignalComplete(t.id, 0); }
                 }));
 
-                confirmBtn.innerText = "Add To Index";
+                const q = query(collection(db, "league_sites"), where("url", "==", window.tempAI.url));
+                const snap = await getDocs(q);
+                confirmBtn.innerText = !snap.empty ? "Sync & Update Index" : "Add To Index";
                 confirmBtn.classList.remove('btn-loading');
             } catch (err) { alert("Scan failed."); }
             finally { document.getElementById('btnSpinner').classList.add('hidden'); }
@@ -232,14 +235,53 @@
             document.getElementById('prProgress').style.width = `${(window.tempAI.pr / 10) * 100}%`;
         }
 
+        // --- תיקון הפונקציה המרכזית לעדכון וגלילה ---
         window.confirmSubmission = async function() {
+            const confirmBtn = document.getElementById('confirmBtn');
+            confirmBtn.innerText = "Processing...";
+            confirmBtn.classList.add('btn-loading');
+
             try {
                 const q = query(collection(db, "league_sites"), where("url", "==", window.tempAI.url));
                 const snap = await getDocs(q);
-                if (snap.empty) { await addDoc(collection(db, "league_sites"), window.tempAI); }
+                let targetUrl = window.tempAI.url;
+
+                if (!snap.empty) {
+                    // עדכון אתר קיים
+                    const docId = snap.docs[0].id;
+                    await updateDoc(doc(db, "league_sites", docId), {
+                        metrics: window.tempAI.metrics,
+                        pr: window.tempAI.pr,
+                        title: window.tempAI.title,
+                        description: window.tempAI.description,
+                        icon: window.tempAI.icon
+                    });
+                } else {
+                    // הוספה חדשה
+                    await addDoc(collection(db, "league_sites"), window.tempAI);
+                }
+
                 document.getElementById('previewCard').classList.add('hidden');
-                await loadIndex();
-            } catch (err) { alert("Error saving."); }
+                await loadIndex(); // טעינה מחדש של הטבלה
+
+                // גלילה לשורה החדשה/מעודכנת
+                setTimeout(() => {
+                    const rows = document.querySelectorAll('#leaderboardBody tr[data-url]');
+                    for (let row of rows) {
+                        if (row.getAttribute('data-url') === targetUrl) {
+                            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            row.classList.add('highlight-row');
+                            break;
+                        }
+                    }
+                }, 500);
+
+            } catch (err) { 
+                console.error(err);
+                alert("Error syncing data."); 
+            } finally { 
+                confirmBtn.classList.remove('btn-loading'); 
+            }
         };
 
         window.vote = async function(id) {
@@ -265,8 +307,9 @@
             let html = '';
             
             data.forEach((item, i) => {
+                // הוספת data-url כדי שנוכל למצוא את השורה בגלילה
                 html += `
-                    <tr class="hover:bg-white/[0.02] transition-colors group">
+                    <tr data-url="${item.url}" class="hover:bg-white/[0.02] transition-colors group">
                         <td class="p-4 md:p-8 font-black text-2xl md:text-4xl opacity-10 italic">${i + 1}</td>
                         <td class="p-4 md:p-8">
                             <div class="flex items-center gap-4">
@@ -293,7 +336,6 @@
                         </td>
                     </tr>`;
 
-                // Ads injection every 10 rows
                 if ((i + 1) % 10 === 0 && i !== data.length - 1) {
                     html += `
                         <tr>
@@ -316,7 +358,6 @@
             
             tbody.innerHTML = html;
             
-            // Re-trigger Google Ads
             try {
                 const ads = document.querySelectorAll('.adsbygoogle:not([data-adsbygoogle-status])');
                 ads.forEach(() => { (window.adsbygoogle = window.adsbygoogle || []).push({}); });
