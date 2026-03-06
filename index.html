@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #05070a; color: #e2e8f0; overflow-x: hidden; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #05070a; color: #e2e8f0; }
         .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
         .hero-glow { background: radial-gradient(circle at 50% -20%, #312e81, #05070a); }
         .accent-text { background: linear-gradient(90deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -18,109 +18,102 @@
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
         .modal.active { display: flex; }
         .btn-loading { opacity: 0.4; pointer-events: none; }
-
-        /* Responsive Table Magic */
+        
+        /* תיקון רספונסיביות לטבלה */
         @media (max-width: 768px) {
-            .responsive-table thead { display: none; }
-            .responsive-table tr { display: flex; flex-direction: column; padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
-            .responsive-table td { padding: 0.5rem 0 !important; border: none !important; }
-            .responsive-table td:first-child { font-size: 1.5rem; opacity: 0.3; order: -1; } /* Rank */
-            .responsive-table .actions-cell { justify-content: flex-start; margin-top: 1rem; }
+            .hide-mobile { display: none; }
+            .mobile-stack { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .table-container { overflow-x: auto; }
         }
     </style>
 </head>
 <body class="min-h-screen hero-glow">
 
     <div id="badgeModal" class="modal" onclick="closeModal()">
-        <div class="glass p-6 md:p-10 rounded-[2rem] md:rounded-[2.5rem] max-w-lg w-full text-center border-indigo-500/30" onclick="event.stopPropagation()">
-            <h3 id="modalTitle" class="text-xl md:text-2xl font-black mb-2 text-white italic uppercase tracking-tighter">Embed Badge</h3>
-            <p class="text-slate-400 text-[10px] mb-6 md:mb-8 uppercase tracking-widest font-bold">Live Neural PR Integration</p>
-            <div id="badgePreview" class="mb-8 flex justify-center scale-100 md:scale-125"></div>
+        <div class="glass p-10 rounded-[2.5rem] max-w-lg w-full text-center border-indigo-500/30" onclick="event.stopPropagation()">
+            <h3 id="modalTitle" class="text-2xl font-black mb-2 text-white italic uppercase tracking-tighter">Embed Badge</h3>
+            <p class="text-slate-400 text-xs mb-8 uppercase tracking-widest font-bold">Live Neural PR Integration</p>
+            <div id="badgePreview" class="mb-10 flex justify-center scale-125"></div>
             <div class="text-left mb-6">
                 <span class="text-[9px] font-black text-indigo-400 uppercase tracking-widest block mb-2">HTML Code</span>
-                <code id="badgeCode" class="text-[10px] text-indigo-200 break-all block p-4 bg-black/60 border border-white/5 rounded-xl max-h-32 overflow-y-auto"></code>
+                <code id="badgeCode" class="text-[10px] text-indigo-200 break-all block p-4 bg-black/60 border border-white/5 rounded-xl"></code>
             </div>
-            <button onclick="copyBadgeCode()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-600/20 text-xs">Copy To Clipboard</button>
+            <button onclick="copyBadgeCode()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-600/20">Copy To Clipboard</button>
         </div>
     </div>
 
-    <nav class="p-4 md:p-6 border-b border-white/5 bg-black/20 sticky top-0 z-50 backdrop-blur-md">
+    <nav class="p-6 border-b border-white/5 bg-black/20 sticky top-0 z-50 backdrop-blur-md">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 md:w-10 md:h-10 bg-indigo-600 rounded-lg md:rounded-xl flex items-center justify-center font-extrabold text-white shadow-lg shadow-indigo-600/20 text-sm md:text-base">AI</div>
-                <span class="text-lg md:text-xl font-extrabold tracking-tighter italic uppercase">pcs365</span>
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-extrabold text-white shadow-lg shadow-indigo-600/20">AI</div>
+                <span class="text-xl font-extrabold tracking-tight uppercase tracking-tighter italic">pcs365</span>
             </div>
-            <div class="bg-indigo-500/5 border border-indigo-500/10 px-4 py-1.5 rounded-full font-bold text-indigo-300 text-[9px] md:text-[10px] tracking-widest uppercase">
+            <div class="bg-indigo-500/5 border border-indigo-500/10 px-5 py-2 rounded-full font-bold text-indigo-300 text-[10px] tracking-widest uppercase">
                 Votes Left: <span id="votesLeft" class="text-white">3</span>
             </div>
         </div>
     </nav>
 
-    <header class="pt-16 md:pt-24 pb-12 md:pb-16 text-center px-6">
-        <h1 class="text-4xl sm:text-6xl md:text-8xl font-extrabold tracking-tighter mb-6 italic uppercase">Global <span class="accent-text">AI Index</span></h1>
-        <p class="text-slate-400 max-w-2xl mx-auto mb-10 md:mb-12 text-sm md:text-lg font-medium leading-relaxed">
-            Discover and rank the world's most impactful AI tools based on real-time developer signals and community votes.
+    <header class="pt-24 pb-16 text-center px-4">
+        <h1 class="text-5xl md:text-8xl font-extrabold tracking-tighter mb-6 italic uppercase leading-none">Global <span class="accent-text">AI Index</span></h1>
+        <p class="text-slate-400 max-w-2xl mx-auto mb-12 text-base md:text-lg font-medium">
+            Discover and rank the world's most impactful AI tools based on real-time community signals.
         </p>
-        
-        <div class="max-w-2xl mx-auto glass p-1.5 rounded-2xl md:rounded-3xl flex flex-col md:flex-row gap-2 shadow-2xl border-white/10">
-            <input type="url" id="urlInput" placeholder="Paste AI Tool URL (e.g. cursor.com)" class="flex-1 bg-transparent p-4 outline-none text-white font-semibold placeholder:text-slate-600 text-sm">
-            <button onclick="analyzeWebsite()" id="mainBtn" class="bg-indigo-600 hover:bg-indigo-500 px-8 md:px-12 py-4 rounded-xl md:rounded-2xl font-black flex items-center justify-center gap-3 transition-all active:scale-95 text-xs uppercase tracking-widest">
+        <div class="max-w-2xl mx-auto glass p-2 rounded-3xl flex flex-col md:flex-row gap-2 shadow-2xl border-white/10">
+            <input type="url" id="urlInput" placeholder="Paste AI Tool URL" class="flex-1 bg-transparent p-4 outline-none text-white font-semibold">
+            <button onclick="analyzeWebsite()" id="mainBtn" class="bg-indigo-600 hover:bg-indigo-500 px-12 py-4 rounded-2xl font-black flex items-center justify-center gap-3 text-sm uppercase tracking-widest transition-all">
                 <span>Scan</span>
                 <div id="btnSpinner" class="loader hidden"></div>
             </button>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 md:px-6 pb-20 md:pb-40">
-        
-        <div id="previewCard" class="hidden mb-12 md:mb-20 animate-in fade-in zoom-in duration-500">
-            <div class="glass rounded-[2rem] md:rounded-[3rem] p-1 border-indigo-500/20 bg-gradient-to-br from-indigo-500/10 to-transparent">
+    <main class="max-w-7xl mx-auto px-4 md:px-6 pb-40">
+        <div id="previewCard" class="hidden mb-20 animate-in fade-in duration-700">
+            <div class="glass rounded-[2rem] md:rounded-[3rem] p-1 border-indigo-500/20">
                 <div class="bg-[#0b0f1a]/80 rounded-[1.9rem] md:rounded-[2.9rem] p-6 md:p-10">
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
                         <div class="lg:col-span-3 flex flex-col items-center lg:items-start text-center lg:text-left">
-                            <img id="siteIcon" src="" class="w-20 h-20 md:w-28 md:h-28 rounded-2xl md:rounded-[2rem] mb-6 border border-white/10 bg-black p-3 shadow-2xl">
-                            <h2 id="siteTitle" class="text-2xl md:text-3xl font-black text-white italic mb-2 truncate w-full tracking-tighter"></h2>
-                            <p id="siteDesc" class="text-slate-500 text-xs md:text-sm line-clamp-3 italic font-medium"></p>
+                            <img id="siteIcon" src="" class="w-24 h-24 rounded-[1.5rem] mb-4 border border-white/10 bg-black p-2">
+                            <h2 id="siteTitle" class="text-2xl font-black text-white italic mb-2 truncate w-full tracking-tighter"></h2>
+                            <p id="siteDesc" class="text-slate-500 text-xs italic"></p>
                         </div>
-                        
-                        <div class="lg:col-span-6 lg:border-x border-white/5 px-0 md:px-8">
-                            <h4 class="text-[9px] font-black uppercase tracking-[0.3em] text-indigo-400 mb-6 italic text-center lg:text-left">Neural Signal Mapping</h4>
-                            <div id="signalGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4"></div>
+                        <div class="lg:col-span-6 border-y lg:border-y-0 lg:border-x border-white/5 py-8 lg:py-0 lg:px-8">
+                            <h4 class="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-6 italic">Neural Signal Mapping</h4>
+                            <div id="signalGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
                         </div>
-
-                        <div class="lg:col-span-3 flex flex-col items-center justify-center text-center">
-                            <span class="text-[9px] font-black text-slate-500 uppercase mb-2 tracking-widest">Social PR</span>
-                            <div id="sitePR" class="text-6xl md:text-8xl font-black italic tracking-tighter text-white mb-4">0.0</div>
+                        <div class="lg:col-span-3 flex flex-col items-center justify-center">
+                            <div id="sitePR" class="text-7xl font-black italic text-white mb-2">0.0</div>
                             <div class="w-full bg-white/5 h-2 rounded-full mb-6 overflow-hidden">
-                                <div id="prProgress" class="progress-fill h-full bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.5)]" style="width: 0%"></div>
+                                <div id="prProgress" class="progress-fill h-full bg-indigo-500" style="width: 0%"></div>
                             </div>
-                            <button id="confirmBtn" onclick="confirmSubmission()" class="btn-loading w-full bg-white text-black py-4 rounded-xl md:rounded-[1.2rem] font-black uppercase tracking-widest text-[10px] shadow-xl transition-all">Analyzing...</button>
-                            <div id="statusMsg" class="mt-4 text-[9px] font-black uppercase tracking-widest hidden"></div>
+                            <button id="confirmBtn" onclick="confirmSubmission()" class="btn-loading w-full bg-white text-black py-4 rounded-xl font-black uppercase text-[10px] tracking-widest">Analyzing...</button>
+                            <div id="statusMsg" class="mt-4 text-[9px] font-black uppercase hidden"></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="tableTarget" class="glass rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/5">
-            <table class="w-full text-left responsive-table">
-                <thead>
-                    <tr class="text-[11px] uppercase tracking-widest text-slate-500 border-b border-white/5 bg-white/[0.03]">
-                        <th class="p-8">Rank</th>
-                        <th class="p-8">Application</th>
-                        <th class="p-8">Signals</th>
-                        <th class="p-8 text-center">Votes</th>
-                        <th class="p-8 text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="leaderboardBody" class="divide-y divide-white/5">
-                    </tbody>
-            </table>
+        <div id="tableTarget" class="glass rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden border border-white/5">
+            <div class="table-container">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="text-[10px] uppercase tracking-widest text-slate-500 border-b border-white/5 bg-white/[0.03]">
+                            <th class="p-4 md:p-8">Rank</th>
+                            <th class="p-4 md:p-8">Application</th>
+                            <th class="p-4 md:p-8 hide-mobile">Signals</th>
+                            <th class="p-4 md:p-8 text-center">Votes</th>
+                            <th class="p-4 md:p-8 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody" class="divide-y divide-white/5"></tbody>
+                </table>
+            </div>
         </div>
     </main>
 
     <script type="module">
-        // Keep your existing Firebase Logic here (it was perfectly fine)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, limit, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -138,7 +131,7 @@
         let masterData = [];
 
         const SOURCES = [
-            { id: 'gh', name: 'GitHub', color: 'indigo' },
+            { id: 'gh', name: 'GitHub', color: 'blue' },
             { id: 'hn', name: 'HackerNews', color: 'orange' },
             { id: 'rd', name: 'Reddit', color: 'red' },
             { id: 'so', name: 'StackOverflow', color: 'yellow' },
@@ -170,8 +163,8 @@
                 const meta = await metaRes.json();
                 const data = meta.data || {};
 
-                let finalDesc = data.description || data.og?.description || `Advanced AI analysis for ${domain}.`;
-                finalDesc = finalDesc.length > 120 ? finalDesc.substring(0, 117) + "..." : finalDesc;
+                let finalDesc = data.description || `Advanced AI analysis for ${domain}.`;
+                finalDesc = finalDesc.length > 100 ? finalDesc.substring(0, 97) + "..." : finalDesc;
 
                 window.tempAI = { 
                     url: `https://${domain}`, 
@@ -203,24 +196,11 @@
                     } catch(e) { markSignalComplete(t.id, 0); }
                 }));
 
-                const q = query(collection(db, "league_sites"), where("url", "==", window.tempAI.url));
-                const snap = await getDocs(q);
-                const statusEl = document.getElementById('statusMsg');
-                statusEl.classList.remove('hidden');
-                
-                if(!snap.empty) {
-                    statusEl.innerText = "System Synced: Tool exists.";
-                    statusEl.className = "mt-4 text-[10px] font-black uppercase tracking-widest text-indigo-400 italic animate-pulse";
-                    confirmBtn.innerText = "Sync & Update";
-                } else {
-                    statusEl.innerText = "Logic OK: New AI detected.";
-                    statusEl.className = "mt-4 text-[10px] font-black uppercase tracking-widest text-emerald-400 italic";
-                    confirmBtn.innerText = "Add To Index";
-                }
+                confirmBtn.innerText = "Add To Index";
+                confirmBtn.classList.remove('btn-loading');
             } catch (err) {
                 alert("Scan failed.");
             } finally {
-                confirmBtn.classList.remove('btn-loading');
                 document.getElementById('btnSpinner').classList.add('hidden');
             }
         };
@@ -231,18 +211,15 @@
             if (m.gh > 0) score += Math.log10(m.gh + 1) * 1.5;
             const devS = (m.npm || 0) + (m.pypi || 0) + (m.so || 0);
             if (devS > 0) score += Math.log10(devS + 1) * 1.2;
-            const socS = (m.hn || 0) + (m.rd || 0) + (m.ph || 0);
-            if (socS > 0) score += Math.log10(socS + 1) * 0.8;
-            if (m.wk > 0) score += 1.0;
             window.tempAI.pr = Math.min(9.9, score).toFixed(1);
             updatePreviewUI();
         }
 
         function initSignalGrid() {
             document.getElementById('signalGrid').innerHTML = SOURCES.map(s => `
-                <div id="sig-${s.id}" class="bg-white/5 border border-white/5 p-3 md:p-4 rounded-xl flex flex-col gap-1">
-                    <span class="text-[8px] font-bold text-slate-600 uppercase tracking-tighter">${s.name}</span>
-                    <div class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-slate-700 animate-pulse"></div><span class="text-[9px] text-slate-700 font-bold">Scanning</span></div>
+                <div id="sig-${s.id}" class="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col">
+                    <span class="text-[8px] font-bold text-slate-600 uppercase">${s.name}</span>
+                    <span class="text-[9px] text-slate-700 font-bold animate-pulse">...</span>
                 </div>`).join('');
         }
 
@@ -250,9 +227,8 @@
             const s = SOURCES.find(x => x.id === id);
             const el = document.getElementById(`sig-${id}`);
             if(!el) return;
-            el.innerHTML = `<span class="text-indigo-400 text-[8px] font-black uppercase tracking-tighter">${s.name}</span>
-                            <div class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
-                            <span class="text-white text-xs font-black">${val > 999 ? (val/1000).toFixed(1)+'k' : val}</span></div>`;
+            el.innerHTML = `<span class="text-${s.color}-400 text-[8px] font-black uppercase">${s.name}</span>
+                            <span class="text-white text-[10px] font-black">${val > 999 ? (val/1000).toFixed(1)+'k' : val}</span>`;
         }
 
         function updatePreviewUI() {
@@ -264,27 +240,15 @@
         }
 
         window.confirmSubmission = async function() {
-            const confirmBtn = document.getElementById('confirmBtn');
-            confirmBtn.innerText = "Syncing...";
-            confirmBtn.classList.add('btn-loading');
             try {
                 const q = query(collection(db, "league_sites"), where("url", "==", window.tempAI.url));
                 const snap = await getDocs(q);
-                if (!snap.empty) {
-                    await updateDoc(doc(db, "league_sites", snap.docs[0].id), { 
-                        metrics: window.tempAI.metrics, 
-                        pr: window.tempAI.pr,
-                        description: window.tempAI.description,
-                        title: window.tempAI.title,
-                        icon: window.tempAI.icon
-                    });
-                } else {
+                if (snap.empty) {
                     await addDoc(collection(db, "league_sites"), window.tempAI);
                 }
                 document.getElementById('previewCard').classList.add('hidden');
                 await loadIndex();
             } catch (err) { alert("Error saving."); }
-            finally { confirmBtn.classList.remove('btn-loading'); }
         };
 
         window.vote = async function(id) {
@@ -311,27 +275,26 @@
                 <tr class="hover:bg-white/[0.02] transition-colors group">
                     <td class="p-4 md:p-8 font-black text-2xl md:text-4xl opacity-10 italic">${i + 1}</td>
                     <td class="p-4 md:p-8">
-                        <div class="flex items-center md:items-start gap-4 md:gap-5">
-                            <img src="${item.icon}" class="w-10 h-10 md:w-14 md:h-14 rounded-xl bg-black border border-white/10 p-2 shadow-xl">
-                            <div class="max-w-xs md:max-w-md">
-                                <div class="font-bold text-white text-base md:text-xl tracking-tighter leading-none mb-1">${item.title}</div>
-                                <div class="text-[9px] text-indigo-400 font-black tracking-[0.2em] uppercase italic mb-1 md:mb-2">PR ${item.pr}</div>
-                                <p class="text-slate-500 text-[10px] md:text-xs line-clamp-1 md:line-clamp-2 italic font-medium">${item.description || ""}</p>
+                        <div class="flex items-center gap-4">
+                            <img src="${item.icon}" class="w-10 h-10 md:w-14 md:h-14 rounded-xl bg-black border border-white/10 p-1">
+                            <div>
+                                <div class="font-bold text-white text-sm md:text-xl tracking-tighter">${item.title}</div>
+                                <div class="text-[9px] text-indigo-400 font-black uppercase italic">PR ${item.pr}</div>
                             </div>
                         </div>
                     </td>
-                    <td class="p-4 md:p-8">
-                        <div class="flex flex-wrap gap-1.5 max-w-[150px] md:max-w-[200px]">
+                    <td class="p-8 hide-mobile">
+                        <div class="flex flex-wrap gap-1 max-w-[150px]">
                             ${Object.entries(item.metrics || {}).filter(([k,v]) => v > 0).slice(0, 3).map(([k,v]) => `
                                 <span class="text-[7px] font-black px-1.5 py-0.5 rounded bg-white/5 text-slate-500 uppercase border border-white/5">${k}</span>
                             `).join('')}
                         </div>
                     </td>
-                    <td class="p-4 md:p-8 text-center font-black text-2xl md:text-4xl italic text-white tracking-tighter">${item.votes}</td>
+                    <td class="p-4 md:p-8 text-center font-black text-xl md:text-4xl italic text-white">${item.votes}</td>
                     <td class="p-4 md:p-8">
-                        <div class="flex items-center justify-end gap-2 actions-cell">
-                            <button onclick="openShare('${item.id}', '${item.title.replace(/'/g, "\\'")}', '${item.pr}')" class="bg-white/5 hover:bg-white/10 text-white px-3 md:px-5 py-2 md:py-3 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all">Embed</button>
-                            <button onclick="vote('${item.id}')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 md:px-7 py-2 md:py-3 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all active:scale-90 shadow-lg shadow-indigo-600/20">Vote</button>
+                        <div class="flex items-center justify-end gap-2 md:gap-3">
+                            <button onclick="openShare('${item.id}', '${item.title.replace(/'/g, "\\'")}', '${item.pr}')" class="bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 px-3 md:px-5 py-2 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all">Embed</button>
+                            <button onclick="vote('${item.id}')" class="bg-orange-500 hover:bg-orange-600 text-white px-4 md:px-7 py-2 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-orange-500/20">Vote</button>
                         </div>
                     </td>
                 </tr>`).join('');
