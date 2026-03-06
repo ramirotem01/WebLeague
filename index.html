@@ -1,13 +1,320 @@
-<header class="pt-24 pb-16 text-center px-4">
-    <h1 class="text-5xl md:text-8xl font-extrabold tracking-tighter mb-6 italic uppercase leading-none">Global <span class="accent-text">AI Index</span></h1>
-    <p class="text-slate-400 max-w-2xl mx-auto mb-12 text-base md:text-lg font-medium">
-        Discover and rank the world's most impactful AI tools based on real-time developer signals, social buzz, and community votes.
-    </p>
-    <div class="max-w-2xl mx-auto glass p-2 rounded-3xl flex flex-col md:flex-row gap-2 shadow-2xl border-white/10">
-        <input type="url" id="urlInput" placeholder="Paste AI Tool URL (e.g. cursor.com)" class="flex-1 bg-transparent p-4 outline-none text-white font-semibold placeholder:text-slate-600">
-        <button onclick="analyzeWebsite()" id="mainBtn" class="bg-indigo-600 hover:bg-indigo-500 px-12 py-4 rounded-2xl font-black flex items-center justify-center gap-3 text-sm uppercase tracking-widest transition-all">
-            <span>Scan</span>
-            <div id="btnSpinner" class="loader hidden"></div>
-        </button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pcs365 | AI Global Index</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #05070a; color: #e2e8f0; }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+        .hero-glow { background: radial-gradient(circle at 50% -20%, #312e81, #05070a); }
+        .accent-text { background: linear-gradient(90deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .loader { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.1); border-top: 2px solid #6366f1; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .progress-fill { transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+        .modal.active { display: flex; }
+        .btn-loading { opacity: 0.4; pointer-events: none; }
+        
+        /* תיקון רספונסיביות לטבלה */
+        @media (max-width: 768px) {
+            .hide-mobile { display: none; }
+            .mobile-stack { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .table-container { overflow-x: auto; }
+        }
+    </style>
+</head>
+<body class="min-h-screen hero-glow">
+
+    <div id="badgeModal" class="modal" onclick="closeModal()">
+        <div class="glass p-10 rounded-[2.5rem] max-w-lg w-full text-center border-indigo-500/30" onclick="event.stopPropagation()">
+            <h3 id="modalTitle" class="text-2xl font-black mb-2 text-white italic uppercase tracking-tighter">Embed Badge</h3>
+            <p class="text-slate-400 text-xs mb-8 uppercase tracking-widest font-bold">Live Neural PR Integration</p>
+            <div id="badgePreview" class="mb-10 flex justify-center scale-125"></div>
+            <div class="text-left mb-6">
+                <span class="text-[9px] font-black text-indigo-400 uppercase tracking-widest block mb-2">HTML Code</span>
+                <code id="badgeCode" class="text-[10px] text-indigo-200 break-all block p-4 bg-black/60 border border-white/5 rounded-xl"></code>
+            </div>
+            <button onclick="copyBadgeCode()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-600/20">Copy To Clipboard</button>
+        </div>
     </div>
-</header>
+
+    <nav class="p-6 border-b border-white/5 bg-black/20 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-extrabold text-white shadow-lg shadow-indigo-600/20">AI</div>
+                <span class="text-xl font-extrabold tracking-tight uppercase tracking-tighter italic">pcs365</span>
+            </div>
+            <div class="bg-indigo-500/5 border border-indigo-500/10 px-5 py-2 rounded-full font-bold text-indigo-300 text-[10px] tracking-widest uppercase">
+                Votes Left: <span id="votesLeft" class="text-white">3</span>
+            </div>
+        </div>
+    </nav>
+
+    <header class="pt-24 pb-16 text-center px-4">
+        <h1 class="text-5xl md:text-8xl font-extrabold tracking-tighter mb-6 italic uppercase leading-none">Global <span class="accent-text">AI Index</span></h1>
+        <p class="text-slate-400 max-w-2xl mx-auto mb-12 text-base md:text-lg font-medium">
+            Discover and rank the world's most impactful AI tools based on real-time developer signals, social buzz, and community votes.
+        </p>
+        <div class="max-w-2xl mx-auto glass p-2 rounded-3xl flex flex-col md:flex-row gap-2 shadow-2xl border-white/10">
+            <input type="url" id="urlInput" placeholder="Paste AI Tool URL" class="flex-1 bg-transparent p-4 outline-none text-white font-semibold">
+            <button onclick="analyzeWebsite()" id="mainBtn" class="bg-indigo-600 hover:bg-indigo-500 px-12 py-4 rounded-2xl font-black flex items-center justify-center gap-3 text-sm uppercase tracking-widest transition-all">
+                <span>Scan</span>
+                <div id="btnSpinner" class="loader hidden"></div>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 md:px-6 pb-40">
+        <div id="previewCard" class="hidden mb-20 animate-in fade-in duration-700">
+            <div class="glass rounded-[2rem] md:rounded-[3rem] p-1 border-indigo-500/20">
+                <div class="bg-[#0b0f1a]/80 rounded-[1.9rem] md:rounded-[2.9rem] p-6 md:p-10">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
+                        <div class="lg:col-span-3 flex flex-col items-center lg:items-start text-center lg:text-left">
+                            <img id="siteIcon" src="" class="w-24 h-24 rounded-[1.5rem] mb-4 border border-white/10 bg-black p-2">
+                            <h2 id="siteTitle" class="text-2xl font-black text-white italic mb-2 truncate w-full tracking-tighter"></h2>
+                            <p id="siteDesc" class="text-slate-500 text-xs italic"></p>
+                        </div>
+                        <div class="lg:col-span-6 border-y lg:border-y-0 lg:border-x border-white/5 py-8 lg:py-0 lg:px-8">
+                            <h4 class="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-6 italic">Neural Signal Mapping</h4>
+                            <div id="signalGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+                        </div>
+                        <div class="lg:col-span-3 flex flex-col items-center justify-center">
+                            <div id="sitePR" class="text-7xl font-black italic text-white mb-2">0.0</div>
+                            <div class="w-full bg-white/5 h-2 rounded-full mb-6 overflow-hidden">
+                                <div id="prProgress" class="progress-fill h-full bg-indigo-500" style="width: 0%"></div>
+                            </div>
+                            <button id="confirmBtn" onclick="confirmSubmission()" class="btn-loading w-full bg-white text-black py-4 rounded-xl font-black uppercase text-[10px] tracking-widest">Analyzing...</button>
+                            <div id="statusMsg" class="mt-4 text-[9px] font-black uppercase hidden"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tableTarget" class="glass rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden border border-white/5">
+            <div class="table-container">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="text-[10px] uppercase tracking-widest text-slate-500 border-b border-white/5 bg-white/[0.03]">
+                            <th class="p-4 md:p-8">Rank</th>
+                            <th class="p-4 md:p-8">Application</th>
+                            <th class="p-4 md:p-8 hide-mobile">Signals</th>
+                            <th class="p-4 md:p-8 text-center">Votes</th>
+                            <th class="p-4 md:p-8 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody" class="divide-y divide-white/5"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, limit, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBs8x4SVn65rzWrQJxbwxpOj2XvoNFMhBI",
+            authDomain: "webleague-7b833.firebaseapp.com",
+            projectId: "webleague-7b833",
+            storageBucket: "webleague-7b833.firebasestorage.app",
+            messagingSenderId: "689675956792",
+            appId: "1:689675956792:web:eeaeecd758e49dc9506ccd"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        let masterData = [];
+
+        const SOURCES = [
+            { id: 'gh', name: 'GitHub', color: 'blue' },
+            { id: 'hn', name: 'HackerNews', color: 'orange' },
+            { id: 'rd', name: 'Reddit', color: 'red' },
+            { id: 'so', name: 'StackOverflow', color: 'yellow' },
+            { id: 'npm', name: 'NPM', color: 'red' },
+            { id: 'pypi', name: 'PyPI', color: 'blue' },
+            { id: 'wk', name: 'Wikipedia', color: 'slate' },
+            { id: 'gl', name: 'GitLab', color: 'orange' },
+            { id: 'ph', name: 'ProdHunt', color: 'rose' }
+        ];
+
+        window.analyzeWebsite = async function() {
+            let urlInput = document.getElementById('urlInput').value.trim();
+            if(!urlInput) return;
+            if(!urlInput.startsWith('http')) urlInput = 'https://' + urlInput;
+            const domain = new URL(urlInput).hostname.replace('www.', '');
+            const name = domain.split('.')[0];
+
+            document.getElementById('previewCard').classList.remove('hidden');
+            document.getElementById('btnSpinner').classList.remove('hidden');
+            
+            const confirmBtn = document.getElementById('confirmBtn');
+            confirmBtn.classList.add('btn-loading');
+            confirmBtn.innerText = "Scanning Data...";
+
+            initSignalGrid();
+
+            try {
+                const metaRes = await fetch(`https://api.microlink.io?url=${encodeURIComponent(urlInput)}`);
+                const meta = await metaRes.json();
+                const data = meta.data || {};
+
+                let finalDesc = data.description || `Advanced AI analysis for ${domain}.`;
+                finalDesc = finalDesc.length > 100 ? finalDesc.substring(0, 97) + "..." : finalDesc;
+
+                window.tempAI = { 
+                    url: `https://${domain}`, 
+                    title: data.title || (name.charAt(0).toUpperCase() + name.slice(1)), 
+                    description: finalDesc,
+                    icon: data.logo?.url || data.image?.url || `https://logo.clearbit.com/${domain}`,
+                    votes: 1, pr: 1.0, metrics: {} 
+                };
+                updatePreviewUI();
+
+                const tasks = [
+                    { id: 'gh', fetch: () => fetch(`https://api.github.com/search/repositories?q=${name}&sort=stars`).then(r=>r.json()).then(d=>d.items?.[0]?.stargazers_count || 0) },
+                    { id: 'hn', fetch: () => fetch(`https://hn.algolia.com/api/v1/search?query=${name}`).then(r=>r.json()).then(d=>d.hits?.length || 0) },
+                    { id: 'rd', fetch: () => fetch(`https://www.reddit.com/search.json?q=${name}&limit=10`).then(r=>r.json()).then(d=>d.data?.children?.length || 0) },
+                    { id: 'so', fetch: () => fetch(`https://api.stackexchange.com/2.3/search/advanced?q=${name}&site=stackoverflow`).then(r=>r.json()).then(d=>d.items?.length || 0) },
+                    { id: 'npm', fetch: () => fetch(`https://registry.npmjs.org/-/v1/search?text=${name}`).then(r=>r.json()).then(d=>d.total || 0) },
+                    { id: 'pypi', fetch: () => fetch(`https://pypi.org/pypi/${name}/json`).then(r=>r.ok ? 1 : 0) },
+                    { id: 'wk', fetch: () => fetch(`https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&list=search&srsearch=${name}`).then(r=>r.json()).then(d=>d.query?.search?.length || 0) },
+                    { id: 'gl', fetch: () => fetch(`https://gitlab.com/api/v4/projects?search=${name}`).then(r=>r.json()).then(d=>d.length || 0) },
+                    { id: 'ph', fetch: () => fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://www.producthunt.com/search?q='+name)}`).then(r=>r.json()).then(d=>d.contents.includes('posts') ? 1 : 0) }
+                ];
+
+                await Promise.allSettled(tasks.map(async (t) => {
+                    try {
+                        const val = await t.fetch();
+                        window.tempAI.metrics[t.id] = val;
+                        markSignalComplete(t.id, val);
+                        calculatePR();
+                    } catch(e) { markSignalComplete(t.id, 0); }
+                }));
+
+                confirmBtn.innerText = "Add To Index";
+                confirmBtn.classList.remove('btn-loading');
+            } catch (err) {
+                alert("Scan failed.");
+            } finally {
+                document.getElementById('btnSpinner').classList.add('hidden');
+            }
+        };
+
+        function calculatePR() {
+            const m = window.tempAI.metrics;
+            let score = 1.0;
+            if (m.gh > 0) score += Math.log10(m.gh + 1) * 1.5;
+            const devS = (m.npm || 0) + (m.pypi || 0) + (m.so || 0);
+            if (devS > 0) score += Math.log10(devS + 1) * 1.2;
+            window.tempAI.pr = Math.min(9.9, score).toFixed(1);
+            updatePreviewUI();
+        }
+
+        function initSignalGrid() {
+            document.getElementById('signalGrid').innerHTML = SOURCES.map(s => `
+                <div id="sig-${s.id}" class="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col">
+                    <span class="text-[8px] font-bold text-slate-600 uppercase">${s.name}</span>
+                    <span class="text-[9px] text-slate-700 font-bold animate-pulse">...</span>
+                </div>`).join('');
+        }
+
+        function markSignalComplete(id, val) {
+            const s = SOURCES.find(x => x.id === id);
+            const el = document.getElementById(`sig-${id}`);
+            if(!el) return;
+            el.innerHTML = `<span class="text-${s.color}-400 text-[8px] font-black uppercase">${s.name}</span>
+                            <span class="text-white text-[10px] font-black">${val > 999 ? (val/1000).toFixed(1)+'k' : val}</span>`;
+        }
+
+        function updatePreviewUI() {
+            document.getElementById('siteTitle').innerText = window.tempAI.title;
+            document.getElementById('siteDesc').innerText = window.tempAI.description;
+            document.getElementById('siteIcon').src = window.tempAI.icon;
+            document.getElementById('sitePR').innerText = window.tempAI.pr;
+            document.getElementById('prProgress').style.width = `${(window.tempAI.pr / 10) * 100}%`;
+        }
+
+        window.confirmSubmission = async function() {
+            try {
+                const q = query(collection(db, "league_sites"), where("url", "==", window.tempAI.url));
+                const snap = await getDocs(q);
+                if (snap.empty) {
+                    await addDoc(collection(db, "league_sites"), window.tempAI);
+                }
+                document.getElementById('previewCard').classList.add('hidden');
+                await loadIndex();
+            } catch (err) { alert("Error saving."); }
+        };
+
+        window.vote = async function(id) {
+            const key = `v_log_${new Date().getFullYear()}-W${Math.ceil(new Date().getDate()/7)}`;
+            let log = JSON.parse(localStorage.getItem(key) || '[]');
+            if(log.length >= 3) return alert("Weekly limit reached.");
+            await updateDoc(doc(db, "league_sites", id), { votes: increment(1) });
+            log.push(id); localStorage.setItem(key, JSON.stringify(log));
+            loadIndex();
+        };
+
+        window.loadIndex = async function() {
+            const q = query(collection(db, "league_sites"), orderBy("votes", "desc"), limit(100));
+            const snap = await getDocs(q);
+            masterData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            renderTable(masterData);
+            const key = `v_log_${new Date().getFullYear()}-W${Math.ceil(new Date().getDate()/7)}`;
+            document.getElementById('votesLeft').innerText = 3 - JSON.parse(localStorage.getItem(key) || '[]').length;
+        };
+
+        function renderTable(data) {
+            const tbody = document.getElementById('leaderboardBody');
+            tbody.innerHTML = data.map((item, i) => `
+                <tr class="hover:bg-white/[0.02] transition-colors group">
+                    <td class="p-4 md:p-8 font-black text-2xl md:text-4xl opacity-10 italic">${i + 1}</td>
+                    <td class="p-4 md:p-8">
+                        <div class="flex items-center gap-4">
+                            <img src="${item.icon}" class="w-10 h-10 md:w-14 md:h-14 rounded-xl bg-black border border-white/10 p-1">
+                            <div>
+                                <div class="font-bold text-white text-sm md:text-xl tracking-tighter">${item.title}</div>
+                                <div class="text-[9px] text-indigo-400 font-black uppercase italic">PR ${item.pr}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-8 hide-mobile">
+                        <div class="flex flex-wrap gap-1 max-w-[150px]">
+                            ${Object.entries(item.metrics || {}).filter(([k,v]) => v > 0).slice(0, 3).map(([k,v]) => `
+                                <span class="text-[7px] font-black px-1.5 py-0.5 rounded bg-white/5 text-slate-500 uppercase border border-white/5">${k}</span>
+                            `).join('')}
+                        </div>
+                    </td>
+                    <td class="p-4 md:p-8 text-center font-black text-xl md:text-4xl italic text-white">${item.votes}</td>
+                    <td class="p-4 md:p-8">
+                        <div class="flex items-center justify-end gap-2 md:gap-3">
+                            <button onclick="openShare('${item.id}', '${item.title.replace(/'/g, "\\'")}', '${item.pr}')" class="bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 px-3 md:px-5 py-2 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all">Embed</button>
+                            <button onclick="vote('${item.id}')" class="bg-orange-500 hover:bg-orange-600 text-white px-4 md:px-7 py-2 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-orange-500/20">Vote</button>
+                        </div>
+                    </td>
+                </tr>`).join('');
+        }
+
+        window.openShare = (id, title, pr) => {
+            const badge = `<div style="display:inline-flex; align-items:center; background:#05070a; border:1px solid #312e81; border-radius:12px; padding:12px 20px; font-family:sans-serif; color:white;"><div style="font-weight:900; font-style:italic; margin-right:12px;">pcs365</div><div style="font-size:10px; opacity:0.6; margin-right:8px;">${title}</div><div style="font-weight:900; color:#818cf8;">PR ${pr}</div></div>`;
+            document.getElementById('modalTitle').innerText = `${title} Badge`;
+            document.getElementById('badgePreview').innerHTML = badge;
+            document.getElementById('badgeCode').innerText = badge;
+            document.getElementById('badgeModal').classList.add('active');
+        };
+
+        window.closeModal = () => document.getElementById('badgeModal').classList.remove('active');
+        window.copyBadgeCode = () => {
+            navigator.clipboard.writeText(document.getElementById('badgeCode').innerText);
+            alert("Copied!");
+        };
+
+        loadIndex();
+    </script>
+</body>
+</html>
