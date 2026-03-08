@@ -6,6 +6,7 @@
     <title>pcs365 | AI Global Index</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5255988903908485" crossorigin="anonymous"></script>
 
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #05070a; color: #e2e8f0; }
@@ -18,15 +19,18 @@
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
         .modal.active { display: flex; }
         .btn-loading { opacity: 0.4; pointer-events: none; }
+        .highlight-row { animation: highlight 2s ease-out; }
+        @keyframes highlight { 0% { background: rgba(99, 102, 241, 0.2); } 100% { background: transparent; } }
         
-        /* Ad Styles */
-        .ad-container { position: relative; overflow: hidden; height: 60px; display: flex; align-items: center; cursor: pointer; }
-        .ad-blur-bg { position: absolute; inset: 0; background-size: cover; background-position: center; filter: blur(30px) brightness(0.3); transform: scale(1.5); z-index: 0; }
-        .ad-content { position: relative; z-index: 1; display: flex; width: 100%; height: 100%; align-items: center; justify-content: space-between; padding: 0 32px; }
+        /* AliExpress Ad Styles */
+        .ad-container { position: relative; overflow: hidden; height: 70px; display: flex; align-items: center; cursor: pointer; border-radius: 1rem; margin: 10px; }
+        .ad-blur-bg { position: absolute; inset: 0; background-size: cover; background-position: center; filter: blur(25px) brightness(0.4); transform: scale(1.2); z-index: 0; }
+        .ad-content { position: relative; z-index: 1; display: flex; width: 100%; height: 100%; align-items: center; justify-content: space-between; padding: 0 24px; }
 
         @media (max-width: 768px) {
             .hide-mobile { display: none; }
             .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .ad-content { padding: 0 15px; }
         }
     </style>
 </head>
@@ -35,6 +39,7 @@
     <div id="badgeModal" class="modal" onclick="closeModal()">
         <div class="glass p-10 rounded-[2.5rem] max-w-lg w-full text-center border-indigo-500/30" onclick="event.stopPropagation()">
             <h3 id="modalTitle" class="text-2xl font-black mb-2 text-white italic uppercase tracking-tighter">Embed Badge</h3>
+            <p class="text-slate-400 text-xs mb-8 uppercase tracking-widest font-bold">Live Neural PR Integration</p>
             <div id="badgePreview" class="mb-10 flex justify-center scale-125"></div>
             <div class="text-left mb-6">
                 <span class="text-[9px] font-black text-indigo-400 uppercase tracking-widest block mb-2">HTML Code</span>
@@ -47,7 +52,7 @@
     <nav class="p-6 border-b border-white/5 bg-black/20 sticky top-0 z-50 backdrop-blur-md">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-extrabold text-white">AI</div>
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-extrabold text-white shadow-lg shadow-indigo-600/20">AI</div>
                 <span class="text-xl font-extrabold tracking-tight uppercase italic tracking-tighter">pcs365</span>
             </div>
             <div class="bg-indigo-500/5 border border-indigo-500/10 px-5 py-2 rounded-full font-bold text-indigo-300 text-[10px] tracking-widest uppercase">
@@ -59,11 +64,11 @@
     <header class="pt-24 pb-16 text-center px-4">
         <h1 class="text-5xl md:text-8xl font-extrabold tracking-tighter mb-6 italic uppercase leading-none">Global <span class="accent-text">AI Index</span></h1>
         <p class="text-slate-400 max-w-2xl mx-auto mb-12 text-base md:text-lg font-medium">
-            Discover and rank the world's most impactful AI tools based on real-time developer signals.
+            Discover and rank the world's most impactful AI tools based on real-time developer signals, social buzz, and community votes.
         </p>
         
         <div class="max-w-2xl mx-auto glass p-2 rounded-3xl flex flex-col md:flex-row gap-2 shadow-2xl border-white/10">
-            <input type="url" id="urlInput" placeholder="Paste AI Tool URL" class="flex-1 bg-transparent p-4 outline-none text-white font-semibold">
+            <input type="url" id="urlInput" placeholder="Paste AI Tool URL (e.g. cursor.com)" class="flex-1 bg-transparent p-4 outline-none text-white font-semibold placeholder:text-slate-600">
             <button onclick="analyzeWebsite()" id="mainBtn" class="bg-indigo-600 hover:bg-indigo-500 px-12 py-4 rounded-2xl font-black flex items-center justify-center gap-3 transition-all text-sm uppercase tracking-widest">
                 <span>Scan</span>
                 <div id="btnSpinner" class="loader hidden"></div>
@@ -72,16 +77,17 @@
     </header>
 
     <main class="max-w-7xl mx-auto px-4 md:px-6 pb-40">
-        <div id="previewCard" class="hidden mb-20">
+        <div id="previewCard" class="hidden mb-20 animate-in fade-in duration-700">
             <div class="glass rounded-[2rem] md:rounded-[3rem] p-1 border-indigo-500/20">
-                <div class="bg-[#0b0f1a]/80 rounded-[1.9rem] p-6 md:p-10">
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                        <div class="lg:col-span-3 flex flex-col items-center lg:items-start">
-                            <img id="siteIcon" src="" class="w-24 h-24 rounded-[1.5rem] mb-4 border border-white/10 bg-black p-2">
-                            <h2 id="siteTitle" class="text-2xl font-black text-white italic mb-2 tracking-tighter truncate w-full text-center lg:text-left"></h2>
-                            <p id="siteDesc" class="text-slate-500 text-xs italic text-center lg:text-left"></p>
+                <div class="bg-[#0b0f1a]/80 rounded-[1.9rem] md:rounded-[2.9rem] p-6 md:p-10">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
+                        <div class="lg:col-span-3 flex flex-col items-center lg:items-start text-center lg:text-left">
+                            <img id="siteIcon" src="" class="w-24 h-24 rounded-[1.5rem] mb-4 border border-white/10 bg-black p-2 shadow-2xl">
+                            <h2 id="siteTitle" class="text-2xl font-black text-white italic mb-2 tracking-tighter truncate w-full"></h2>
+                            <p id="siteDesc" class="text-slate-500 text-xs italic font-medium"></p>
                         </div>
-                        <div class="lg:col-span-6 border-y lg:border-y-0 lg:border-x border-white/5 py-8 lg:px-8">
+                        <div class="lg:col-span-6 border-y lg:border-y-0 lg:border-x border-white/5 py-8 lg:py-0 lg:px-8">
+                            <h4 class="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-6 italic">Neural Signal Mapping</h4>
                             <div id="signalGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
                         </div>
                         <div class="lg:col-span-3 flex flex-col items-center justify-center">
@@ -89,14 +95,15 @@
                             <div class="w-full bg-white/5 h-2 rounded-full mb-6 overflow-hidden">
                                 <div id="prProgress" class="progress-fill h-full bg-indigo-500" style="width: 0%"></div>
                             </div>
-                            <button id="confirmBtn" onclick="confirmSubmission()" class="w-full bg-white text-black py-4 rounded-xl font-black uppercase text-[10px] tracking-widest">Add To Index</button>
+                            <button id="confirmBtn" onclick="confirmSubmission()" class="btn-loading w-full bg-white text-black py-4 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl transition-all">Analyzing...</button>
+                            <div id="statusMsg" class="mt-4 text-[9px] font-black uppercase hidden"></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="glass rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/5">
+        <div id="tableTarget" class="glass rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/5">
             <div class="table-container">
                 <table class="w-full text-left">
                     <thead>
@@ -129,6 +136,9 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        let masterData = [];
+        let affiliateLink = "https://s.click.aliexpress.com/e/_DdB7V7n"; // Default fallback
+        const adImageUrl = "https://ae01.alicdn.com/kf/S3619e57974f148d087c950fe497cdf55q/300x250.jpg";
 
         const SOURCES = [
             { id: 'gh', name: 'GitHub', color: 'blue' },
@@ -136,13 +146,22 @@
             { id: 'rd', name: 'Reddit', color: 'red' },
             { id: 'so', name: 'StackOverflow', color: 'yellow' },
             { id: 'npm', name: 'NPM', color: 'red' },
+            { id: 'pypi', name: 'PyPI', color: 'blue' },
+            { id: 'wk', name: 'Wikipedia', color: 'slate' },
+            { id: 'gl', name: 'GitLab', color: 'orange' },
             { id: 'ph', name: 'ProdHunt', color: 'rose' }
         ];
 
-        let affiliateLink = null;
-        const adImageUrl = "https://ae01.alicdn.com/kf/S3619e57974f148d087c950fe497cdf55q/300x250.jpg";
+        // --- ALIEXPRESS: Fetch link from Firebase ---
+        async function fetchAds() {
+            try {
+                const snap = await getDoc(doc(db, "app_settings", "ads"));
+                if(snap.exists() && snap.data().aliexpress_url) {
+                    affiliateLink = snap.data().aliexpress_url;
+                }
+            } catch(e) { console.log("Ad link fetch failed"); }
+        }
 
-        // --- SCAN ENGINE ---
         window.analyzeWebsite = async function() {
             let urlInput = document.getElementById('urlInput').value.trim();
             if(!urlInput) return;
@@ -152,6 +171,11 @@
 
             document.getElementById('previewCard').classList.remove('hidden');
             document.getElementById('btnSpinner').classList.remove('hidden');
+            
+            const confirmBtn = document.getElementById('confirmBtn');
+            confirmBtn.classList.add('btn-loading');
+            confirmBtn.innerText = "Scanning Data...";
+
             initSignalGrid();
 
             try {
@@ -162,118 +186,193 @@
                 window.tempAI = { 
                     url: `https://${domain}`, 
                     title: data.title || (name.charAt(0).toUpperCase() + name.slice(1)), 
-                    description: (data.description || "").substring(0, 100),
+                    description: (data.description || `AI tool index entry for ${domain}`).substring(0, 100),
                     icon: data.logo?.url || data.image?.url || `https://logo.clearbit.com/${domain}`,
                     votes: 1, pr: 1.0, metrics: {} 
                 };
+                updatePreviewUI();
 
                 const tasks = [
-                    { id: 'gh', fetch: () => fetch(`https://api.github.com/search/repositories?q=${name}`).then(r=>r.json()).then(d=>d.total_count || 0) },
+                    { id: 'gh', fetch: () => fetch(`https://api.github.com/search/repositories?q=${name}&sort=stars`).then(r=>r.json()).then(d=>d.items?.[0]?.stargazers_count || 0) },
                     { id: 'hn', fetch: () => fetch(`https://hn.algolia.com/api/v1/search?query=${name}`).then(r=>r.json()).then(d=>d.hits?.length || 0) },
-                    { id: 'rd', fetch: () => fetch(`https://www.reddit.com/search.json?q=${name}`).then(r=>r.json()).then(d=>d.data?.children?.length || 0) }
+                    { id: 'rd', fetch: () => fetch(`https://www.reddit.com/search.json?q=${name}&limit=10`).then(r=>r.json()).then(d=>d.data?.children?.length || 0) },
+                    { id: 'so', fetch: () => fetch(`https://api.stackexchange.com/2.3/search/advanced?q=${name}&site=stackoverflow`).then(r=>r.json()).then(d=>d.items?.length || 0) },
+                    { id: 'npm', fetch: () => fetch(`https://registry.npmjs.org/-/v1/search?text=${name}`).then(r=>r.json()).then(d=>d.total || 0) },
+                    { id: 'pypi', fetch: () => fetch(`https://pypi.org/pypi/${name}/json`).then(r=>r.ok ? 1 : 0) },
+                    { id: 'wk', fetch: () => fetch(`https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&list=search&srsearch=${name}`).then(r=>r.json()).then(d=>d.query?.search?.length || 0) },
+                    { id: 'gl', fetch: () => fetch(`https://gitlab.com/api/v4/projects?search=${name}`).then(r=>r.json()).then(d=>d.length || 0) },
+                    { id: 'ph', fetch: () => fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://www.producthunt.com/search?q='+name)}`).then(r=>r.json()).then(d=>d.contents.includes('posts') ? 1 : 0) }
                 ];
 
                 await Promise.allSettled(tasks.map(async (t) => {
-                    const val = await t.fetch().catch(() => 0);
-                    window.tempAI.metrics[t.id] = val;
-                    markSignalComplete(t.id, val);
-                    calculatePR();
+                    try {
+                        const val = await t.fetch();
+                        window.tempAI.metrics[t.id] = val;
+                        markSignalComplete(t.id, val);
+                        calculatePR();
+                    } catch(e) { markSignalComplete(t.id, 0); }
                 }));
 
-                updatePreviewUI();
-            } catch (e) { alert("Scan Error"); }
+                const q = query(collection(db, "league_sites"), where("url", "==", window.tempAI.url));
+                const snap = await getDocs(q);
+                confirmBtn.innerText = !snap.empty ? "Sync & Update Index" : "Add To Index";
+                confirmBtn.classList.remove('btn-loading');
+            } catch (err) { alert("Scan failed."); }
             finally { document.getElementById('btnSpinner').classList.add('hidden'); }
         };
 
         function calculatePR() {
             const m = window.tempAI.metrics;
-            let score = 1.0 + (Math.log10((m.gh || 0) + 1) * 2);
+            let score = 1.0;
+            if (m.gh > 0) score += Math.log10(m.gh + 1) * 1.5;
             window.tempAI.pr = Math.min(9.9, score).toFixed(1);
             updatePreviewUI();
         }
 
         function initSignalGrid() {
             document.getElementById('signalGrid').innerHTML = SOURCES.map(s => `
-                <div id="sig-${s.id}" class="bg-white/5 p-3 rounded-xl border border-white/5">
+                <div id="sig-${s.id}" class="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col">
                     <span class="text-[8px] font-bold text-slate-600 uppercase">${s.name}</span>
-                    <span class="text-[10px] text-slate-700 block">Scanning...</span>
+                    <span class="text-[10px] text-slate-700 font-bold">Scanning...</span>
                 </div>`).join('');
         }
 
         function markSignalComplete(id, val) {
             const s = SOURCES.find(x => x.id === id);
             const el = document.getElementById(`sig-${id}`);
-            if(el) el.innerHTML = `<span class="text-indigo-400 text-[8px] font-black uppercase">${s.name}</span><span class="text-white text-[10px] font-black block">${val}</span>`;
+            if(!el) return;
+            el.innerHTML = `<span class="text-${s.color}-400 text-[8px] font-black uppercase">${s.name}</span>
+                            <span class="text-white text-[10px] font-black">${val > 999 ? (val/1000).toFixed(1)+'k' : val}</span>`;
         }
 
         function updatePreviewUI() {
             document.getElementById('siteTitle').innerText = window.tempAI.title;
+            document.getElementById('siteDesc').innerText = window.tempAI.description;
             document.getElementById('siteIcon').src = window.tempAI.icon;
             document.getElementById('sitePR').innerText = window.tempAI.pr;
             document.getElementById('prProgress').style.width = `${(window.tempAI.pr / 10) * 100}%`;
         }
 
         window.confirmSubmission = async function() {
-            await addDoc(collection(db, "league_sites"), window.tempAI);
-            document.getElementById('previewCard').classList.add('hidden');
-            loadIndex();
+            const confirmBtn = document.getElementById('confirmBtn');
+            confirmBtn.innerText = "Processing...";
+            confirmBtn.classList.add('btn-loading');
+
+            try {
+                const q = query(collection(db, "league_sites"), where("url", "==", window.tempAI.url));
+                const snap = await getDocs(q);
+                let targetUrl = window.tempAI.url;
+
+                if (!snap.empty) {
+                    const docId = snap.docs[0].id;
+                    await updateDoc(doc(db, "league_sites", docId), {
+                        metrics: window.tempAI.metrics,
+                        pr: window.tempAI.pr,
+                        title: window.tempAI.title,
+                        description: window.tempAI.description,
+                        icon: window.tempAI.icon
+                    });
+                } else {
+                    await addDoc(collection(db, "league_sites"), window.tempAI);
+                }
+
+                document.getElementById('previewCard').classList.add('hidden');
+                await loadIndex();
+
+                setTimeout(() => {
+                    const rows = document.querySelectorAll('#leaderboardBody tr[data-url]');
+                    for (let row of rows) {
+                        if (row.getAttribute('data-url') === targetUrl) {
+                            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            row.classList.add('highlight-row');
+                            break;
+                        }
+                    }
+                }, 500);
+
+            } catch (err) { 
+                console.error(err);
+                alert("Error syncing data."); 
+            } finally { 
+                confirmBtn.classList.remove('btn-loading'); 
+            }
         };
 
-        // --- VOTING & DATA ---
-        let votesCount = parseInt(localStorage.getItem('user_votes') || '3');
-        document.getElementById('votesLeft').innerText = votesCount;
-
-        window.vote = async (id) => {
-            if (votesCount <= 0) return alert("Limit reached!");
+        window.vote = async function(id) {
+            const key = `v_log_${new Date().getFullYear()}-W${Math.ceil(new Date().getDate()/7)}`;
+            let log = JSON.parse(localStorage.getItem(key) || '[]');
+            if(log.length >= 3) return alert("Weekly limit reached.");
             await updateDoc(doc(db, "league_sites", id), { votes: increment(1) });
-            votesCount--;
-            localStorage.setItem('user_votes', votesCount);
-            document.getElementById('votesLeft').innerText = votesCount;
+            log.push(id); localStorage.setItem(key, JSON.stringify(log));
             loadIndex();
         };
-
-        async function fetchAds() {
-            const snap = await getDoc(doc(db, "app_settings", "ads"));
-            if(snap.exists()) affiliateLink = snap.data().aliexpress_url;
-        }
 
         window.loadIndex = async function() {
-            await fetchAds();
+            await fetchAds(); // Get AliExpress Link
             const q = query(collection(db, "league_sites"), orderBy("votes", "desc"), limit(100));
             const snap = await getDocs(q);
-            renderTable(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+            masterData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            renderTable(masterData);
+            const key = `v_log_${new Date().getFullYear()}-W${Math.ceil(new Date().getDate()/7)}`;
+            document.getElementById('votesLeft').innerText = 3 - JSON.parse(localStorage.getItem(key) || '[]').length;
         };
 
         function renderTable(data) {
             const tbody = document.getElementById('leaderboardBody');
             let html = '';
+            
             data.forEach((item, i) => {
                 html += `
-                    <tr class="hover:bg-white/[0.02] transition-colors">
+                    <tr data-url="${item.url}" class="hover:bg-white/[0.02] transition-colors group">
                         <td class="p-4 md:p-8 font-black text-2xl md:text-4xl opacity-10 italic">${i + 1}</td>
-                        <td class="p-4 md:p-8 flex items-center gap-4">
-                            <img src="${item.icon}" class="w-10 h-10 md:w-14 rounded-xl bg-black border border-white/10 p-1">
-                            <div>
-                                <div class="font-bold text-white text-sm md:text-xl">${item.title}</div>
-                                <div class="text-[9px] text-indigo-400 font-black italic">PR ${item.pr}</div>
+                        <td class="p-4 md:p-8">
+                            <div class="flex items-center gap-4">
+                                <img src="${item.icon}" class="w-10 h-10 md:w-14 md:h-14 rounded-xl bg-black border border-white/10 p-1">
+                                <div>
+                                    <div class="font-bold text-white text-sm md:text-xl tracking-tighter">${item.title}</div>
+                                    <div class="text-[9px] text-indigo-400 font-black uppercase italic">PR ${item.pr}</div>
+                                </div>
                             </div>
                         </td>
                         <td class="p-8 hide-mobile">
-                            <div class="flex gap-1">
-                                ${Object.keys(item.metrics || {}).slice(0, 3).map(k => `<span class="text-[7px] font-black px-1.5 py-0.5 rounded bg-white/5 text-slate-500 uppercase">${k}</span>`).join('')}
+                            <div class="flex flex-wrap gap-1 max-w-[150px]">
+                                ${Object.entries(item.metrics || {}).filter(([k,v]) => v > 0).slice(0, 3).map(([k,v]) => `
+                                    <span class="text-[7px] font-black px-1.5 py-0.5 rounded bg-white/5 text-slate-500 uppercase border border-white/5">${k}</span>
+                                `).join('')}
                             </div>
                         </td>
                         <td class="p-4 md:p-8 text-center font-black text-xl md:text-4xl italic text-white">${item.votes}</td>
-                        <td class="p-4 md:p-8 text-right flex gap-2 justify-end">
-                            <button onclick="openShare('${item.id}', '${item.title}', '${item.pr}')" class="bg-indigo-600/10 text-indigo-400 px-3 py-2 rounded-xl text-[9px] font-black uppercase">Embed</button>
-                            <button onclick="vote('${item.id}')" class="bg-orange-500 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase">Vote</button>
+                        <td class="p-4 md:p-8">
+                            <div class="flex items-center justify-end gap-2 md:gap-3">
+                                <button onclick="openShare('${item.id}', '${item.title.replace(/'/g, "\\'")}', '${item.pr}')" class="bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 px-3 md:px-5 py-2 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all">Embed</button>
+                                <button onclick="vote('${item.id}')" class="bg-orange-500 hover:bg-orange-600 text-white px-4 md:px-7 py-2 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-orange-500/20">Vote</button>
+                            </div>
                         </td>
                     </tr>`;
 
+                // --- ALIEXPRESS: Insert Ad Row every 10 rows ---
                 if ((i + 1) % 10 === 0) {
-                    html += `<tr><td colspan="5" class="p-0 border-y border-white/5"><div class="ad-container" onclick="window.open('${affiliateLink}', '_blank')"><div class="ad-blur-bg" style="background-image: url('${adImageUrl}')"></div><div class="ad-content"><span class="text-[8px] font-black text-white bg-indigo-600 px-2 py-0.5 rounded uppercase">Sponsored</span><img src="${adImageUrl}" class="h-full py-1 object-contain"><div class="bg-white text-black px-4 py-1.5 rounded-full font-black text-[9px] uppercase">Get Deal</div></div></div></td></tr>`;
+                    html += `
+                        <tr>
+                            <td colspan="5" class="p-0 border-y border-white/5">
+                                <div class="ad-container" onclick="window.open('${affiliateLink}', '_blank')">
+                                    <div class="ad-blur-bg" style="background-image: url('${adImageUrl}')"></div>
+                                    <div class="ad-content">
+                                        <div class="flex items-center gap-4">
+                                            <span class="text-[8px] font-black text-white bg-orange-600 px-2 py-0.5 rounded uppercase">Sponsored</span>
+                                            <img src="${adImageUrl}" class="h-[40px] rounded-lg object-contain">
+                                            <span class="text-white font-black italic text-xs uppercase tracking-tighter">AliExpress Global Deals</span>
+                                        </div>
+                                        <div class="bg-white text-black px-4 py-1.5 rounded-full font-black text-[9px] uppercase hover:scale-105 transition-transform shadow-xl">
+                                            Get Deal
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>`;
                 }
             });
+            
             tbody.innerHTML = html;
         }
 
@@ -284,10 +383,21 @@
             document.getElementById('badgeCode').innerText = badge;
             document.getElementById('badgeModal').classList.add('active');
         };
+
         window.closeModal = () => document.getElementById('badgeModal').classList.remove('active');
-        window.copyBadgeCode = () => { navigator.clipboard.writeText(document.getElementById('badgeCode').innerText); alert("Copied!"); };
+        window.copyBadgeCode = () => {
+            navigator.clipboard.writeText(document.getElementById('badgeCode').innerText);
+            alert("Copied!");
+        };
 
         loadIndex();
     </script>
 </body>
 </html>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WK9D6R74GH"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-WK9D6R74GH');
+</script>
