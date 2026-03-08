@@ -18,8 +18,6 @@
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
         .modal.active { display: flex; }
         .btn-loading { opacity: 0.4; pointer-events: none; }
-        .highlight-row { animation: highlight 2s ease-out; }
-        @keyframes highlight { 0% { background: rgba(99, 102, 241, 0.2); } 100% { background: transparent; } }
         
         @media (max-width: 768px) {
             .hide-mobile { display: none; }
@@ -37,7 +35,7 @@
                 <span class="text-[9px] font-black text-indigo-400 uppercase tracking-widest block mb-2">HTML Code</span>
                 <code id="badgeCode" class="text-[10px] text-indigo-200 break-all block p-4 bg-black/60 border border-white/5 rounded-xl"></code>
             </div>
-            <button onclick="copyBadgeCode()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest transition-all">Copy To Clipboard</button>
+            <button onclick="copyBadgeCode()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-600/20">Copy To Clipboard</button>
         </div>
     </div>
 
@@ -45,7 +43,7 @@
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-extrabold text-white shadow-lg shadow-indigo-600/20">AI</div>
-                <span class="text-xl font-extrabold tracking-tight uppercase italic">pcs365</span>
+                <span class="text-xl font-extrabold tracking-tight uppercase italic tracking-tighter">pcs365</span>
             </div>
             <div class="bg-indigo-500/5 border border-indigo-500/10 px-5 py-2 rounded-full font-bold text-indigo-300 text-[10px] tracking-widest uppercase">
                 Votes Left: <span id="votesLeft" class="text-white">3</span>
@@ -67,13 +65,13 @@
     </header>
 
     <main class="max-w-7xl mx-auto px-4 md:px-6 pb-40">
-        <div id="previewCard" class="hidden mb-20">
+        <div id="previewCard" class="hidden mb-20 animate-in fade-in duration-700">
             <div class="glass rounded-[2rem] p-1 border-indigo-500/20">
                 <div class="bg-[#0b0f1a]/80 rounded-[1.9rem] p-6 md:p-10">
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         <div class="lg:col-span-3 flex flex-col items-center lg:items-start">
-                            <img id="siteIcon" src="" class="w-24 h-24 rounded-[1.5rem] mb-4 bg-black border border-white/10 p-2">
-                            <h2 id="siteTitle" class="text-2xl font-black text-white italic tracking-tighter"></h2>
+                            <img id="siteIcon" src="" class="w-24 h-24 rounded-[1.5rem] mb-4 bg-black border border-white/10 p-2 shadow-2xl">
+                            <h2 id="siteTitle" class="text-2xl font-black text-white italic tracking-tighter truncate w-full"></h2>
                             <p id="siteDesc" class="text-slate-500 text-xs mt-2"></p>
                         </div>
                         <div class="lg:col-span-6 border-y lg:border-y-0 lg:border-x border-white/5 py-8 lg:py-0 lg:px-8">
@@ -88,7 +86,7 @@
             </div>
         </div>
 
-        <div class="glass rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl">
+        <div class="glass rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/5">
             <div class="table-container">
                 <table class="w-full text-left">
                     <thead>
@@ -123,15 +121,7 @@
         const db = getFirestore(app);
         let affiliateLink = null;
 
-        const SOURCES = [
-            { id: 'gh', name: 'GitHub', color: 'blue' },
-            { id: 'hn', name: 'HackerNews', color: 'orange' },
-            { id: 'rd', name: 'Reddit', color: 'red' },
-            { id: 'so', name: 'StackOverflow', color: 'yellow' },
-            { id: 'ph', name: 'ProdHunt', color: 'rose' }
-        ];
-
-        // Fetch protected link from Firebase
+        // Fetch link from DB for protection
         async function fetchAffiliateData() {
             try {
                 const docRef = doc(db, "app_settings", "ads");
@@ -146,7 +136,7 @@
 
         window.loadIndex = async function() {
             await fetchAffiliateData();
-            const q = query(collection(db, "league_sites"), orderBy("votes", "desc"), limit(50));
+            const q = query(collection(db, "league_sites"), orderBy("votes", "desc"), limit(100));
             const snap = await getDocs(q);
             renderTable(snap.docs.map(d => ({ id: d.id, ...d.data() })));
         };
@@ -161,7 +151,7 @@
                         <td class="p-4 md:p-8 font-black text-2xl md:text-4xl opacity-10 italic">${i + 1}</td>
                         <td class="p-4 md:p-8">
                             <div class="flex items-center gap-4">
-                                <img src="${item.icon}" class="w-10 h-10 rounded-xl bg-black border border-white/10 p-1">
+                                <img src="${item.icon}" class="w-10 h-10 md:w-14 md:h-14 rounded-xl bg-black border border-white/10 p-1">
                                 <div>
                                     <div class="font-bold text-white text-sm md:text-xl tracking-tighter">${item.title}</div>
                                     <div class="text-[9px] text-indigo-400 font-black uppercase italic">PR ${item.pr}</div>
@@ -169,33 +159,37 @@
                             </div>
                         </td>
                         <td class="p-8 hide-mobile">
-                            <div class="flex gap-1">
-                                ${Object.keys(item.metrics || {}).slice(0, 3).map(k => `<span class="text-[7px] font-black px-1.5 py-0.5 rounded bg-white/5 text-slate-500 uppercase">${k}</span>`).join('')}
+                            <div class="flex flex-wrap gap-1">
+                                ${Object.keys(item.metrics || {}).slice(0, 3).map(k => `<span class="text-[7px] font-black px-1.5 py-0.5 rounded bg-white/5 text-slate-500 uppercase border border-white/5">${k}</span>`).join('')}
                             </div>
                         </td>
                         <td class="p-4 md:p-8 text-center font-black text-xl md:text-4xl italic text-white">${item.votes}</td>
                         <td class="p-4 md:p-8 text-right">
-                            <button onclick="vote('${item.id}')" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all shadow-lg shadow-orange-500/20">Vote</button>
+                            <button onclick="vote('${item.id}')" class="bg-orange-500 hover:bg-orange-600 text-white px-4 md:px-7 py-2 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all">Vote</button>
                         </td>
                     </tr>`;
 
-                // פס דק של פרסומת כל 10 שורות
+                // Native Slim Ad Row (Every 10 rows)
                 if ((i + 1) % 10 === 0 && i !== data.length - 1) {
                     html += `
                         <tr>
                             <td colspan="5" class="p-0 border-y border-white/5">
-                                <div class="flex items-center justify-between px-8 py-1.5 bg-gradient-to-r from-indigo-900/10 to-transparent cursor-pointer group" onclick="safeAffiliateRedirect()">
-                                    <div class="flex items-center gap-3">
+                                <div class="flex items-center justify-between px-8 py-2 bg-[#0a0c14] cursor-pointer group hover:bg-indigo-950/10 transition-all" onclick="safeAffiliateRedirect()">
+                                    <div class="flex items-center gap-3 shrink-0">
                                         <span class="text-[7px] font-black text-indigo-400 uppercase tracking-widest border border-indigo-400/30 px-1.5 py-0.5 rounded">Ad</span>
-                                        <span class="text-[9px] text-slate-500 font-bold hidden md:block italic">Featured Offer</span>
+                                        <div class="hidden lg:block">
+                                            <p class="text-[10px] text-white font-bold leading-none">AliExpress Tech Deals</p>
+                                            <p class="text-[8px] text-slate-500 font-medium">Exclusive offers for developers</p>
+                                        </div>
                                     </div>
-                                    <div class="h-[40px] w-full max-w-[500px] overflow-hidden rounded border border-white/5 group-hover:border-indigo-500/40 transition-all">
+                                    <div class="h-[35px] flex-1 flex justify-center px-4">
                                         <img src="https://ae01.alicdn.com/kf/S3619e57974f148d087c950fe497cdf55q/300x250.jpg" 
-                                             class="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity">
+                                             class="h-full w-auto object-contain transition-transform group-hover:scale-110" 
+                                             alt="AliExpress">
                                     </div>
-                                    <div class="hidden md:flex items-center gap-2 text-indigo-400 font-black text-[8px] uppercase tracking-tighter">
-                                        Shop
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"></path></svg>
+                                    <div class="flex items-center gap-2 shrink-0 bg-indigo-600/20 px-3 py-1.5 rounded-lg border border-indigo-500/20 group-hover:bg-indigo-600 transition-all">
+                                        <span class="text-indigo-400 group-hover:text-white font-black text-[9px] uppercase tracking-tighter">Get Deal</span>
+                                        <svg class="w-3 h-3 text-indigo-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7-7 7"></path></svg>
                                     </div>
                                 </div>
                             </td>
@@ -210,6 +204,7 @@
             loadIndex();
         };
 
+        window.closeModal = () => document.getElementById('badgeModal').classList.remove('active');
         loadIndex();
     </script>
 </body>
