@@ -116,7 +116,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, limit, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, limit, doc, updateDoc, increment, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBs8x4SVn65rzWrQJxbwxpOj2XvoNFMhBI",
@@ -130,6 +130,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         let masterData = [];
+        let affiliateLink = null;
 
         const SOURCES = [
             { id: 'gh', name: 'GitHub', color: 'blue' },
@@ -143,29 +144,35 @@
             { id: 'ph', name: 'ProdHunt', color: 'rose' }
         ];
 
-        // --- פונקציות הגנה על קישורי שותפים ---
+        // --- משיכת קישור שיווק מה-DB (שכבת הגנה נוספת) ---
+        async function fetchAffiliateData() {
+            try {
+                // הנחה: יצרת קולקשן בשם 'app_settings' ומסמך בשם 'ads' עם שדה בשם 'aliexpress_url'
+                const docRef = doc(db, "app_settings", "ads");
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    affiliateLink = docSnap.data().aliexpress_url;
+                }
+            } catch (e) { console.log("Ad sync failed."); }
+        }
+
         window.safeAffiliateRedirect = function() {
+            if (!affiliateLink) return;
+
             const ua = navigator.userAgent.toLowerCase();
-            const bots = ['bot', 'crawler', 'spider', 'slurp', 'lighthouse'];
-            
-            // בדיקת בוטים לפי User Agent
+            const bots = ['bot', 'crawler', 'spider', 'slurp', 'lighthouse', 'headless'];
             if (bots.some(b => ua.includes(b))) return;
 
-            // Rate Limiting פשוט - מקסימום 5 הקלקות בדקה
             const now = Date.now();
             const clickData = JSON.parse(localStorage.getItem('aff_clicks') || '[]');
             const recentClicks = clickData.filter(t => now - t < 60000);
             
-            if (recentClicks.length > 5) {
-                console.log('Too many clicks');
-                return;
-            }
+            if (recentClicks.length > 5) return;
 
             recentClicks.push(now);
             localStorage.setItem('aff_clicks', JSON.stringify(recentClicks));
 
-            // פתיחת הקישור
-            window.open('https://s.click.aliexpress.com/e/_c2w0d9R1?bz=300*250', '_blank');
+            window.open(affiliateLink, '_blank');
         };
 
         window.analyzeWebsite = async function() {
@@ -296,12 +303,8 @@
                     }
                 }, 500);
 
-            } catch (err) { 
-                console.error(err);
-                alert("Error syncing data."); 
-            } finally { 
-                confirmBtn.classList.remove('btn-loading'); 
-            }
+            } catch (err) { alert("Error syncing data."); }
+            finally { confirmBtn.classList.remove('btn-loading'); }
         };
 
         window.vote = async function(id) {
@@ -314,6 +317,7 @@
         };
 
         window.loadIndex = async function() {
+            await fetchAffiliateData(); // רענון קישור שיווק
             const q = query(collection(db, "league_sites"), orderBy("votes", "desc"), limit(100));
             const snap = await getDocs(q);
             masterData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -396,6 +400,5 @@
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
   gtag('config', 'G-WK9D6R74GH');
 </script>
