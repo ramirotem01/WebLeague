@@ -14,17 +14,15 @@
         .accent-text { background: linear-gradient(90deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .loader { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.1); border-top: 2px solid #6366f1; border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .progress-fill { transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
         .modal.active { display: flex; }
-        .btn-loading { opacity: 0.4; pointer-events: none; }
         
         /* Ad Row Styles */
         .ad-container { position: relative; overflow: hidden; height: 60px; display: flex; align-items: center; cursor: pointer; }
         .ad-blur-bg { position: absolute; inset: 0; background-size: cover; background-position: center; filter: blur(30px) brightness(0.3); transform: scale(1.5); z-index: 0; }
         .ad-content { position: relative; z-index: 1; display: flex; width: 100%; height: 100%; align-items: center; justify-content: space-between; padding: 0 32px; }
 
-        @media (max-width: 768 {
+        @media (max-width: 768px) {
             .hide-mobile { display: none; }
             .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         }
@@ -35,11 +33,10 @@
     <div id="badgeModal" class="modal" onclick="closeModal()">
         <div class="glass p-10 rounded-[2.5rem] max-w-lg w-full text-center border-indigo-500/30" onclick="event.stopPropagation()">
             <h3 id="modalTitle" class="text-2xl font-black mb-2 text-white italic uppercase tracking-tighter">Embed Badge</h3>
-            <p class="text-slate-400 text-xs mb-8 uppercase tracking-widest font-bold">Live Neural PR Integration</p>
             <div id="badgePreview" class="mb-10 flex justify-center scale-125"></div>
             <div class="text-left mb-6">
                 <span class="text-[9px] font-black text-indigo-400 uppercase tracking-widest block mb-2">HTML Code</span>
-                <code id="badgeCode" class="text-[10px] text-indigo-200 break-all block p-4 bg-black/60 border border-white/5 rounded-xl"></code>
+                <code id="badgeCode" class="text-[10px] text-indigo-200 break-all block p-4 bg-black/60 border border-white/5 rounded-xl font-mono"></code>
             </div>
             <button onclick="copyBadgeCode()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-600/20">Copy To Clipboard</button>
         </div>
@@ -59,21 +56,20 @@
 
     <header class="pt-24 pb-16 text-center px-4">
         <h1 class="text-5xl md:text-8xl font-extrabold tracking-tighter mb-6 italic uppercase leading-none">Global <span class="accent-text">AI Index</span></h1>
-        <p class="text-slate-400 max-w-2xl mx-auto mb-12 text-base md:text-lg font-medium">
+        <p class="text-slate-400 max-w-2xl mx-auto mb-12 text-base md:text-lg font-medium italic">
             Discover and rank the world's most impactful AI tools based on real-time developer signals, social buzz, and community votes.
         </p>
         
         <div class="max-w-2xl mx-auto glass p-2 rounded-3xl flex flex-col md:flex-row gap-2 shadow-2xl border-white/10">
-            <input type="url" id="urlInput" placeholder="Paste AI Tool URL (e.g. cursor.com)" class="flex-1 bg-transparent p-4 outline-none text-white font-semibold placeholder:text-slate-600">
-            <button onclick="analyzeWebsite()" id="mainBtn" class="bg-indigo-600 hover:bg-indigo-500 px-12 py-4 rounded-2xl font-black flex items-center justify-center gap-3 transition-all text-sm uppercase tracking-widest">
+            <input type="url" id="urlInput" placeholder="Paste AI Tool URL" class="flex-1 bg-transparent p-4 outline-none text-white font-semibold">
+            <button id="mainBtn" class="bg-indigo-600 hover:bg-indigo-500 px-12 py-4 rounded-2xl font-black flex items-center justify-center gap-3 transition-all text-sm uppercase tracking-widest">
                 <span>Scan</span>
-                <div id="btnSpinner" class="loader hidden"></div>
             </button>
         </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-4 md:px-6 pb-40">
-        <div id="tableTarget" class="glass rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/5">
+        <div class="glass rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/5">
             <div class="table-container">
                 <table class="w-full text-left">
                     <thead>
@@ -93,7 +89,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, query, getDocs, orderBy, limit, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, query, getDocs, orderBy, limit, doc, updateDoc, increment, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBs8x4SVn65rzWrQJxbwxpOj2XvoNFMhBI",
@@ -108,6 +104,32 @@
         const db = getFirestore(app);
         let affiliateLink = null;
         const adImageUrl = "https://ae01.alicdn.com/kf/S3619e57974f148d087c950fe497cdf55q/300x250.jpg";
+
+        // --- Logic for Voting ---
+        let votes = parseInt(localStorage.getItem('user_votes') || '3');
+        document.getElementById('votesLeft').innerText = votes;
+
+        window.vote = async (id) => {
+            if (votes <= 0) {
+                alert("You've reached your voting limit for today!");
+                return;
+            }
+
+            try {
+                const siteRef = doc(db, "league_sites", id);
+                await updateDoc(siteRef, { votes: increment(1) });
+                
+                // Update Local Storage & UI
+                votes--;
+                localStorage.setItem('user_votes', votes);
+                document.getElementById('votesLeft').innerText = votes;
+                
+                loadIndex(); // Refresh data
+            } catch (e) {
+                console.error("Error voting:", e);
+                alert("Voting failed. Please check Firebase Rules.");
+            }
+        };
 
         async function fetchAffiliateData() {
             try {
@@ -150,7 +172,7 @@
                             </div>
                         </td>
                         <td class="p-4 md:p-8 text-center font-black text-xl md:text-4xl italic text-white">${item.votes}</td>
-                        <td class="p-4 md:p-8">
+                        <td class="p-4 md:p-8 text-right">
                             <div class="flex items-center justify-end gap-2 md:gap-3">
                                 <button onclick="openShare('${item.id}', '${item.title.replace(/'/g, "\\'")}', '${item.pr}')" class="bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 px-3 md:px-5 py-2 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all">Embed</button>
                                 <button onclick="vote('${item.id}')" class="bg-orange-500 hover:bg-orange-600 text-white px-4 md:px-7 py-2 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-orange-500/20">Vote</button>
@@ -165,14 +187,14 @@
                                 <div class="ad-container group" onclick="safeAffiliateRedirect()">
                                     <div class="ad-blur-bg" style="background-image: url('${adImageUrl}')"></div>
                                     <div class="ad-content">
-                                        <div class="flex items-center gap-4 shrink-0">
+                                        <div class="flex items-center gap-4">
                                             <span class="text-[8px] font-black text-white bg-indigo-600 px-2 py-0.5 rounded uppercase tracking-widest">Sponsored</span>
-                                            <p class="text-[10px] text-white font-black uppercase italic hidden md:block">Top Tech Deals</p>
+                                            <p class="text-[10px] text-white font-black uppercase italic hidden md:block">Best Tech Deals</p>
                                         </div>
                                         <div class="h-full py-1">
                                             <img src="${adImageUrl}" class="h-full w-auto object-contain shadow-2xl border border-white/10 rounded group-hover:scale-110 transition-transform">
                                         </div>
-                                        <div class="flex items-center gap-3 bg-white text-black px-4 py-1.5 rounded-full font-black text-[9px] uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-colors">
+                                        <div class="flex items-center gap-3 bg-white text-black px-4 py-1.5 rounded-full font-black text-[9px] uppercase tracking-widest hover:bg-indigo-500 hover:text-white transition-colors">
                                             Get Deal
                                         </div>
                                     </div>
@@ -183,11 +205,6 @@
             });
             tbody.innerHTML = html;
         }
-
-        window.vote = async (id) => {
-            await updateDoc(doc(db, "league_sites", id), { votes: increment(1) });
-            loadIndex();
-        };
 
         window.openShare = (id, title, pr) => {
             const badge = `<div style="display:inline-flex; align-items:center; background:#05070a; border:1px solid #312e81; border-radius:12px; padding:12px 20px; font-family:sans-serif; color:white;"><div style="font-weight:900; font-style:italic; margin-right:12px;">pcs365</div><div style="font-size:10px; opacity:0.6; margin-right:8px;">${title}</div><div style="font-weight:900; color:#818cf8;">PR ${pr}</div></div>`;
@@ -200,7 +217,7 @@
         window.closeModal = () => document.getElementById('badgeModal').classList.remove('active');
         window.copyBadgeCode = () => {
             navigator.clipboard.writeText(document.getElementById('badgeCode').innerText);
-            alert("Copied!");
+            alert("Copied to clipboard!");
         };
 
         loadIndex();
