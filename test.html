@@ -22,15 +22,9 @@
         .highlight-row { animation: highlight 2s ease-out; }
         @keyframes highlight { 0% { background: rgba(99, 102, 241, 0.2); } 100% { background: transparent; } }
         
-        /* AliExpress Ad Styles */
-        .ad-container { position: relative; overflow: hidden; height: 70px; display: flex; align-items: center; cursor: pointer; border-radius: 1rem; margin: 10px; }
-        .ad-blur-bg { position: absolute; inset: 0; background-size: cover; background-position: center; filter: blur(25px) brightness(0.4); transform: scale(1.2); z-index: 0; }
-        .ad-content { position: relative; z-index: 1; display: flex; width: 100%; height: 100%; align-items: center; justify-content: space-between; padding: 0 24px; }
-
         @media (max-width: 768px) {
             .hide-mobile { display: none; }
             .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-            .ad-content { padding: 0 15px; }
         }
     </style>
 </head>
@@ -123,7 +117,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, limit, doc, updateDoc, increment, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, limit, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBs8x4SVn65rzWrQJxbwxpOj2XvoNFMhBI",
@@ -137,8 +131,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         let masterData = [];
-        let affiliateLink = "https://s.click.aliexpress.com/e/_DdB7V7n"; // Default fallback
-        const adImageUrl = "https://ae01.alicdn.com/kf/S3619e57974f148d087c950fe497cdf55q/300x250.jpg";
 
         const SOURCES = [
             { id: 'gh', name: 'GitHub', color: 'blue' },
@@ -151,16 +143,6 @@
             { id: 'gl', name: 'GitLab', color: 'orange' },
             { id: 'ph', name: 'ProdHunt', color: 'rose' }
         ];
-
-        // --- ALIEXPRESS: Fetch link from Firebase ---
-        async function fetchAds() {
-            try {
-                const snap = await getDoc(doc(db, "app_settings", "ads"));
-                if(snap.exists() && snap.data().aliexpress_url) {
-                    affiliateLink = snap.data().aliexpress_url;
-                }
-            } catch(e) { console.log("Ad link fetch failed"); }
-        }
 
         window.analyzeWebsite = async function() {
             let urlInput = document.getElementById('urlInput').value.trim();
@@ -253,6 +235,7 @@
             document.getElementById('prProgress').style.width = `${(window.tempAI.pr / 10) * 100}%`;
         }
 
+        // --- תיקון הפונקציה המרכזית לעדכון וגלילה ---
         window.confirmSubmission = async function() {
             const confirmBtn = document.getElementById('confirmBtn');
             confirmBtn.innerText = "Processing...";
@@ -264,6 +247,7 @@
                 let targetUrl = window.tempAI.url;
 
                 if (!snap.empty) {
+                    // עדכון אתר קיים
                     const docId = snap.docs[0].id;
                     await updateDoc(doc(db, "league_sites", docId), {
                         metrics: window.tempAI.metrics,
@@ -273,12 +257,14 @@
                         icon: window.tempAI.icon
                     });
                 } else {
+                    // הוספה חדשה
                     await addDoc(collection(db, "league_sites"), window.tempAI);
                 }
 
                 document.getElementById('previewCard').classList.add('hidden');
-                await loadIndex();
+                await loadIndex(); // טעינה מחדש של הטבלה
 
+                // גלילה לשורה החדשה/מעודכנת
                 setTimeout(() => {
                     const rows = document.querySelectorAll('#leaderboardBody tr[data-url]');
                     for (let row of rows) {
@@ -308,7 +294,6 @@
         };
 
         window.loadIndex = async function() {
-            await fetchAds(); // Get AliExpress Link
             const q = query(collection(db, "league_sites"), orderBy("votes", "desc"), limit(100));
             const snap = await getDocs(q);
             masterData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -322,6 +307,7 @@
             let html = '';
             
             data.forEach((item, i) => {
+                // הוספת data-url כדי שנוכל למצוא את השורה בגלילה
                 html += `
                     <tr data-url="${item.url}" class="hover:bg-white/[0.02] transition-colors group">
                         <td class="p-4 md:p-8 font-black text-2xl md:text-4xl opacity-10 italic">${i + 1}</td>
@@ -350,22 +336,19 @@
                         </td>
                     </tr>`;
 
-                // --- ALIEXPRESS: Insert Ad Row every 10 rows ---
-                if ((i + 1) % 10 === 0) {
+                if ((i + 1) % 10 === 0 && i !== data.length - 1) {
                     html += `
                         <tr>
-                            <td colspan="5" class="p-0 border-y border-white/5">
-                                <div class="ad-container" onclick="window.open('${affiliateLink}', '_blank')">
-                                    <div class="ad-blur-bg" style="background-image: url('${adImageUrl}')"></div>
-                                    <div class="ad-content">
-                                        <div class="flex items-center gap-4">
-                                            <span class="text-[8px] font-black text-white bg-orange-600 px-2 py-0.5 rounded uppercase">Sponsored</span>
-                                            <img src="${adImageUrl}" class="h-[40px] rounded-lg object-contain">
-                                            <span class="text-white font-black italic text-xs uppercase tracking-tighter">AliExpress Global Deals</span>
-                                        </div>
-                                        <div class="bg-white text-black px-4 py-1.5 rounded-full font-black text-[9px] uppercase hover:scale-105 transition-transform shadow-xl">
-                                            Get Deal
-                                        </div>
+                            <td colspan="5" class="p-4 bg-black/40">
+                                <div class="flex flex-col items-center py-8 border border-white/5 rounded-[2rem] bg-white/[0.01]">
+                                    <span class="text-[8px] text-slate-600 uppercase font-black mb-4 tracking-[0.3em]">Neural Sponsored Signal</span>
+                                    <div class="w-full overflow-hidden flex justify-center">
+                                        <ins class="adsbygoogle"
+                                             style="display:block"
+                                             data-ad-format="fluid"
+                                             data-ad-layout-key="-fb+5w+4e-db+86"
+                                             data-ad-client="ca-pub-5255988903908485"
+                                             data-ad-slot="5954651722"></ins>
                                     </div>
                                 </div>
                             </td>
@@ -374,6 +357,11 @@
             });
             
             tbody.innerHTML = html;
+            
+            try {
+                const ads = document.querySelectorAll('.adsbygoogle:not([data-adsbygoogle-status])');
+                ads.forEach(() => { (window.adsbygoogle = window.adsbygoogle || []).push({}); });
+            } catch (e) {}
         }
 
         window.openShare = (id, title, pr) => {
@@ -394,10 +382,12 @@
     </script>
 </body>
 </html>
+<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WK9D6R74GH"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
+
   gtag('config', 'G-WK9D6R74GH');
 </script>
