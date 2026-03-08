@@ -17,7 +17,6 @@
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
         .modal.active { display: flex; }
         
-        /* Ad Row Styles */
         .ad-container { position: relative; overflow: hidden; height: 60px; display: flex; align-items: center; cursor: pointer; }
         .ad-blur-bg { position: absolute; inset: 0; background-size: cover; background-position: center; filter: blur(30px) brightness(0.3); transform: scale(1.5); z-index: 0; }
         .ad-content { position: relative; z-index: 1; display: flex; width: 100%; height: 100%; align-items: center; justify-content: space-between; padding: 0 32px; }
@@ -45,7 +44,7 @@
     <nav class="p-6 border-b border-white/5 bg-black/20 sticky top-0 z-50 backdrop-blur-md">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-extrabold text-white shadow-lg shadow-indigo-600/20">AI</div>
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-extrabold text-white">AI</div>
                 <span class="text-xl font-extrabold tracking-tight uppercase italic tracking-tighter">pcs365</span>
             </div>
             <div class="bg-indigo-500/5 border border-indigo-500/10 px-5 py-2 rounded-full font-bold text-indigo-300 text-[10px] tracking-widest uppercase">
@@ -61,17 +60,35 @@
         </p>
         
         <div class="max-w-2xl mx-auto glass p-2 rounded-3xl flex flex-col md:flex-row gap-2 shadow-2xl border-white/10">
-            <input type="url" id="urlInput" placeholder="Paste AI Tool URL" class="flex-1 bg-transparent p-4 outline-none text-white font-semibold">
-            <button id="mainBtn" class="bg-indigo-600 hover:bg-indigo-500 px-12 py-4 rounded-2xl font-black flex items-center justify-center gap-3 transition-all text-sm uppercase tracking-widest">
+            <input type="url" id="urlInput" placeholder="Paste AI Tool URL" class="flex-1 bg-transparent p-4 outline-none text-white font-semibold placeholder:text-slate-600">
+            <button onclick="analyzeWebsite()" id="mainBtn" class="bg-indigo-600 hover:bg-indigo-500 px-12 py-4 rounded-2xl font-black flex items-center justify-center gap-3 transition-all text-sm uppercase tracking-widest">
                 <span>Scan</span>
+                <div id="btnSpinner" class="loader hidden"></div>
             </button>
         </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-4 md:px-6 pb-40">
+        <div id="previewCard" class="hidden mb-20 animate-in fade-in duration-700">
+            <div class="glass rounded-[2rem] p-6 md:p-10 border-indigo-500/30">
+                <div class="flex flex-col md:flex-row items-center gap-8">
+                    <img id="siteIcon" src="" class="w-20 h-20 rounded-2xl bg-black border border-white/10 p-2">
+                    <div class="flex-1 text-center md:text-left">
+                        <h2 id="siteTitle" class="text-3xl font-black text-white italic tracking-tighter"></h2>
+                        <p id="siteDesc" class="text-slate-500 text-sm mt-2"></p>
+                        <div id="signalGrid" class="flex flex-wrap gap-2 mt-4 justify-center md:justify-start"></div>
+                    </div>
+                    <div class="text-center">
+                        <div id="sitePR" class="text-6xl font-black italic accent-text">0.0</div>
+                        <button onclick="confirmSubmission()" class="mt-4 bg-white text-black px-8 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest">Add To Index</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="glass rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/5">
             <div class="table-container">
-                <table class="w-full text-left">
+                <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="text-[10px] uppercase tracking-widest text-slate-500 border-b border-white/5 bg-white/[0.03]">
                             <th class="p-4 md:p-8">Rank</th>
@@ -89,7 +106,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, query, getDocs, orderBy, limit, doc, updateDoc, increment, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, limit, doc, updateDoc, increment, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBs8x4SVn65rzWrQJxbwxpOj2XvoNFMhBI",
@@ -102,40 +119,60 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        let currentScan = null;
         let affiliateLink = null;
         const adImageUrl = "https://ae01.alicdn.com/kf/S3619e57974f148d087c950fe497cdf55q/300x250.jpg";
 
-        // --- Logic for Voting ---
+        // --- Voting Logic ---
         let votes = parseInt(localStorage.getItem('user_votes') || '3');
         document.getElementById('votesLeft').innerText = votes;
 
         window.vote = async (id) => {
-            if (votes <= 0) {
-                alert("You've reached your voting limit for today!");
-                return;
-            }
-
+            if (votes <= 0) return alert("No votes left!");
             try {
-                const siteRef = doc(db, "league_sites", id);
-                await updateDoc(siteRef, { votes: increment(1) });
-                
-                // Update Local Storage & UI
+                await updateDoc(doc(db, "league_sites", id), { votes: increment(1) });
                 votes--;
                 localStorage.setItem('user_votes', votes);
                 document.getElementById('votesLeft').innerText = votes;
-                
-                loadIndex(); // Refresh data
-            } catch (e) {
-                console.error("Error voting:", e);
-                alert("Voting failed. Please check Firebase Rules.");
-            }
+                loadIndex();
+            } catch (e) { alert("Vote failed. Check Rules."); }
         };
 
+        // --- Scanner Logic ---
+        window.analyzeWebsite = async function() {
+            const url = document.getElementById('urlInput').value.trim();
+            if(!url) return;
+            
+            document.getElementById('btnSpinner').classList.remove('hidden');
+            const domain = new URL(url.startsWith('http') ? url : `https://${url}`).hostname;
+            
+            // Mock Analysis
+            currentScan = {
+                title: domain.split('.')[0].toUpperCase(),
+                url: domain,
+                icon: `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
+                pr: (Math.random() * (9.9 - 7.5) + 7.5).toFixed(1),
+                metrics: { "Dev Signal": "Strong", "Latency": "Optimal", "Security": "Verified" },
+                votes: 1
+            };
+
+            document.getElementById('siteTitle').innerText = currentScan.title;
+            document.getElementById('siteIcon').src = currentScan.icon;
+            document.getElementById('sitePR').innerText = currentScan.pr;
+            document.getElementById('previewCard').classList.remove('hidden');
+            document.getElementById('btnSpinner').classList.add('hidden');
+        };
+
+        window.confirmSubmission = async function() {
+            await addDoc(collection(db, "league_sites"), currentScan);
+            document.getElementById('previewCard').classList.add('hidden');
+            loadIndex();
+        };
+
+        // --- UI & Data ---
         async function fetchAffiliateData() {
-            try {
-                const docSnap = await getDoc(doc(db, "app_settings", "ads"));
-                if (docSnap.exists()) affiliateLink = docSnap.data().aliexpress_url;
-            } catch (e) { console.error("Ad sync failed"); }
+            const docSnap = await getDoc(doc(db, "app_settings", "ads"));
+            if (docSnap.exists()) affiliateLink = docSnap.data().aliexpress_url;
         }
 
         window.safeAffiliateRedirect = () => { if (affiliateLink) window.open(affiliateLink, '_blank'); };
@@ -150,7 +187,6 @@
         function renderTable(data) {
             const tbody = document.getElementById('leaderboardBody');
             let html = '';
-            
             data.forEach((item, i) => {
                 html += `
                     <tr class="hover:bg-white/[0.02] transition-colors group">
@@ -166,41 +202,20 @@
                         </td>
                         <td class="p-8 hide-mobile">
                             <div class="flex flex-wrap gap-1 max-w-[150px]">
-                                ${Object.keys(item.metrics || {}).slice(0, 3).map(k => `
-                                    <span class="text-[7px] font-black px-1.5 py-0.5 rounded bg-white/5 text-slate-500 uppercase border border-white/5">${k}</span>
-                                `).join('')}
+                                ${Object.keys(item.metrics || {}).slice(0, 3).map(k => `<span class="text-[7px] font-black px-1.5 py-0.5 rounded bg-white/5 text-slate-500 uppercase border border-white/5">${k}</span>`).join('')}
                             </div>
                         </td>
                         <td class="p-4 md:p-8 text-center font-black text-xl md:text-4xl italic text-white">${item.votes}</td>
                         <td class="p-4 md:p-8 text-right">
-                            <div class="flex items-center justify-end gap-2 md:gap-3">
-                                <button onclick="openShare('${item.id}', '${item.title.replace(/'/g, "\\'")}', '${item.pr}')" class="bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 px-3 md:px-5 py-2 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all">Embed</button>
-                                <button onclick="vote('${item.id}')" class="bg-orange-500 hover:bg-orange-600 text-white px-4 md:px-7 py-2 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-orange-500/20">Vote</button>
+                            <div class="flex items-center justify-end gap-3">
+                                <button onclick="openShare('${item.id}', '${item.title.replace(/'/g, "\\'")}', '${item.pr}')" class="bg-indigo-600/10 text-indigo-400 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest">Embed</button>
+                                <button onclick="vote('${item.id}')" class="bg-orange-500 text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-orange-500/20">Vote</button>
                             </div>
                         </td>
                     </tr>`;
 
-                if ((i + 1) % 10 === 0 && i !== data.length - 1) {
-                    html += `
-                        <tr>
-                            <td colspan="5" class="p-0 border-y border-white/5">
-                                <div class="ad-container group" onclick="safeAffiliateRedirect()">
-                                    <div class="ad-blur-bg" style="background-image: url('${adImageUrl}')"></div>
-                                    <div class="ad-content">
-                                        <div class="flex items-center gap-4">
-                                            <span class="text-[8px] font-black text-white bg-indigo-600 px-2 py-0.5 rounded uppercase tracking-widest">Sponsored</span>
-                                            <p class="text-[10px] text-white font-black uppercase italic hidden md:block">Best Tech Deals</p>
-                                        </div>
-                                        <div class="h-full py-1">
-                                            <img src="${adImageUrl}" class="h-full w-auto object-contain shadow-2xl border border-white/10 rounded group-hover:scale-110 transition-transform">
-                                        </div>
-                                        <div class="flex items-center gap-3 bg-white text-black px-4 py-1.5 rounded-full font-black text-[9px] uppercase tracking-widest hover:bg-indigo-500 hover:text-white transition-colors">
-                                            Get Deal
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>`;
+                if ((i + 1) % 10 === 0) {
+                    html += `<tr><td colspan="5" class="p-0 border-y border-white/5"><div class="ad-container group" onclick="safeAffiliateRedirect()"><div class="ad-blur-bg" style="background-image: url('${adImageUrl}')"></div><div class="ad-content"><span class="text-[8px] font-black text-white bg-indigo-600 px-2 py-0.5 rounded uppercase">Sponsored</span><img src="${adImageUrl}" class="h-full py-1 object-contain group-hover:scale-110 transition-transform"><div class="bg-white text-black px-4 py-1.5 rounded-full font-black text-[9px] uppercase">Get Deal</div></div></div></td></tr>`;
                 }
             });
             tbody.innerHTML = html;
@@ -213,12 +228,8 @@
             document.getElementById('badgeCode').innerText = badge;
             document.getElementById('badgeModal').classList.add('active');
         };
-
         window.closeModal = () => document.getElementById('badgeModal').classList.remove('active');
-        window.copyBadgeCode = () => {
-            navigator.clipboard.writeText(document.getElementById('badgeCode').innerText);
-            alert("Copied to clipboard!");
-        };
+        window.copyBadgeCode = () => { navigator.clipboard.writeText(document.getElementById('badgeCode').innerText); alert("Copied!"); };
 
         loadIndex();
     </script>
